@@ -39,6 +39,61 @@ function initializeEventHandlers() {
         });
     }
 
+    // Обработчик для кнопки подтверждения пополнения баланса
+    if (confirmBalanceBtn) {
+        confirmBalanceBtn.addEventListener('click', async () => {
+            console.log('Confirm balance button clicked');
+            const amount = parseInt(balanceAmountInput.value);
+            console.log('Amount:', amount);
+
+            if (!amount || amount <= 0) {
+                showNotification('Введите корректную сумму', 'error');
+                return;
+            }
+
+            try {
+                console.log('Sending payment request...');
+                const response = await fetch('/api/payment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_id: 1,
+                        amount: amount
+                    })
+                });
+
+                console.log('Payment response:', response);
+                const data = await response.json();
+                console.log('Payment data:', data);
+
+                if (data.success) {
+                    if (balanceAmount) {
+                        balanceAmount.textContent = `${data.balance} ₽`;
+                    }
+                    hideModal(balanceModal);
+                    clearModalInputs();
+                    showNotification(`Баланс пополнен на ${amount}₽`, 'success');
+
+                    // Haptic feedback для Telegram
+                    if (tg && tg.HapticFeedback) {
+                        try {
+                            tg.HapticFeedback.impactOccurred('medium');
+                        } catch (e) {
+                            console.warn('Failed to trigger haptic feedback:', e);
+                        }
+                    }
+                } else {
+                    showNotification(data.message || 'Ошибка при пополнении баланса', 'error');
+                }
+            } catch (error) {
+                console.error('Payment error:', error);
+                showNotification('Ошибка сети', 'error');
+            }
+        });
+    }
+
     if (historyLink) {
         historyLink.addEventListener('click', () => {
             console.log('History link clicked');

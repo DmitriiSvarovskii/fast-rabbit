@@ -10,6 +10,26 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/style.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+        // Проверяем, что скрипт загружается
+        console.log('HTML loaded');
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOMContentLoaded from HTML');
+            // Проверяем наличие элементов
+            document.querySelectorAll('.device').forEach((device, index) => {
+                console.log('Device from HTML:', device);
+                device.onclick = (e) => {
+                    console.log('Click from HTML handler');
+                    if (!e.target.closest('.copy-btn') && !e.target.closest('.delete-action')) {
+                        const keyId = device.getAttribute('data-key-id');
+                        if (keyId) {
+                            window.location.href = `/key/${keyId}`;
+                        }
+                    }
+                };
+            });
+        });
+    </script>
 </head>
 
 <body>
