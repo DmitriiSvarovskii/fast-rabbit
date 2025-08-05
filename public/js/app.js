@@ -399,11 +399,14 @@ function updateKeysList(keys) {
 
         // Добавляем обработчик клика на весь элемент для открытия инструкций
         deviceElement.addEventListener('click', (e) => {
-            // Не открываем инструкции, если кликнули на кнопку копирования
-            if (e.target.closest('.copy-btn')) {
+            // Не открываем инструкции, если кликнули на кнопку копирования или удаления
+            if (e.target.closest('.copy-btn') || e.target.closest('.delete-action')) {
                 return;
             }
-            window.location.href = `/key/${key.id}`;
+            const keyId = deviceElement.getAttribute('data-key-id');
+            if (keyId) {
+                window.location.href = `/key/${keyId}`;
+            }
         });
 
         const copyBtn = deviceElement.querySelector('.copy-btn');
@@ -680,31 +683,4 @@ document.addEventListener('DOMContentLoaded', () => {
             window.location.reload();
         });
     }
-
-    // Добавляем обработчики для кнопок копирования и открытия модального окна
-    document.querySelectorAll('.device').forEach(deviceElement => {
-        // Обработчик для открытия страницы ключа
-        deviceElement.addEventListener('click', (e) => {
-            if (e.target.closest('.copy-btn')) {
-                return;
-            }
-            const keyId = deviceElement.getAttribute('data-key-id');
-            if (keyId) {
-                window.location.href = `/key/${keyId}`;
-            }
-        });
-
-        // Обработчик для кнопки копирования
-        const copyBtn = deviceElement.querySelector('.copy-btn');
-        if (copyBtn) {
-            copyBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                const keyValue = copyBtn.getAttribute('data-key');
-                if (keyValue) {
-                    copyKey(keyValue);
-                }
-            });
-        }
-    });
 });
