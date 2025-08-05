@@ -21,7 +21,7 @@ body {
     background-color: #000;
     padding-top: calc(36px + var(--tg-safe-area-inset-top, 0px));
 }
-
+/* 1 */
 .header .left {
     display: flex;
     align-items: center;
