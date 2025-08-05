@@ -102,6 +102,7 @@ const historyModal = document.getElementById('historyModal');
 const deleteModal = document.getElementById('deleteModal');
 const serverModal = document.getElementById('serverModal');
 const createKeyModal = document.getElementById('createKeyModal');
+const instructionsModal = document.getElementById('instructionsModal'); // Добавляем модалку инструкций
 
 // Кнопки закрытия модальных окон
 const closeBalanceModal = document.getElementById('closeBalanceModal');
@@ -109,6 +110,7 @@ const closeHistoryModal = document.getElementById('closeHistoryModal');
 const closeDeleteModal = document.getElementById('closeDeleteModal');
 const closeServerModal = document.getElementById('closeServerModal');
 const closeCreateKeyModal = document.getElementById('closeCreateKeyModal');
+const closeInstructionsModal = document.getElementById('closeInstructionsModal'); // Кнопка закрытия инструкций
 
 // Кнопки отмены
 const cancelBalanceBtn = document.getElementById('cancelBalanceBtn');
@@ -122,6 +124,7 @@ const confirmCreateKeyBtn = document.getElementById('confirmCreateKeyBtn');
 
 // Поля ввода
 const balanceAmountInput = document.getElementById('balanceAmountInput');
+const keyText = document.getElementById('keyText'); // Поле для отображения ключа в инструкциях
 
 // Функции для работы с модальными окнами
 function showModal(modal) {
@@ -176,6 +179,17 @@ closeCreateKeyModal.addEventListener('click', () => {
     hideModal(createKeyModal);
 });
 
+closeInstructionsModal.addEventListener('click', () => {
+    hideModal(instructionsModal);
+});
+
+// Закрытие модалки инструкций по клику вне её
+instructionsModal.addEventListener('click', (e) => {
+    if (e.target === instructionsModal) {
+        hideModal(instructionsModal);
+    }
+});
+
 cancelBalanceBtn.addEventListener('click', () => {
     hideModal(balanceModal);
     clearModalInputs();
@@ -218,6 +232,12 @@ serverModal.addEventListener('click', (e) => {
 createKeyModal.addEventListener('click', (e) => {
     if (e.target === createKeyModal) {
         hideModal(createKeyModal);
+    }
+});
+
+instructionsModal.addEventListener('click', (e) => {
+    if (e.target === instructionsModal) {
+        hideModal(instructionsModal);
     }
 });
 
@@ -400,23 +420,75 @@ function updateKeysList(keys) {
             <div class="delete-action"></div>
         `;
 
+        // Добавляем обработчик клика на весь элемент для открытия инструкций
+        deviceElement.addEventListener('click', (e) => {
+            // Не открываем инструкции, если кликнули на кнопку копирования
+            if (e.target.closest('.copy-btn') || e.target.closest('.delete-action')) {
+                return;
+            }
+            showKeyInstructions(key);
+        });
+
+        // Добавляем обработчик для кнопки копирования
+        const copyBtn = deviceElement.querySelector('.copy-btn');
+        copyBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Предотвращаем всплытие события
+            copyKey(key.key);
+        });
+
         keysList.appendChild(deviceElement);
     });
 
-    // Добавляем обработчики для новых кнопок копирования
-    document.querySelectorAll('.copy-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            const keyValue = btn.getAttribute('data-key');
-            if (keyValue) {
-                copyKey(keyValue);
-            }
+    // Переинициализируем свайп для новых элементов
+    initializeSwipe();
+}
+
+// Функция для показа инструкций по ключу
+function showKeyInstructions(key) {
+    const instructionsModal = document.getElementById('instructionsModal');
+    const keyTextElement = document.getElementById('keyText');
+    const platformTabs = document.getElementById('platformTabs');
+
+    // Устанавливаем текст ключа
+    keyTextElement.textContent = key.key;
+
+    // Показываем модалку
+    openModalWithFullscreen(instructionsModal);
+}
+
+// Функция для копирования ключа из модалки инструкций
+function copyKeyFromInstructions() {
+    const keyText = document.getElementById('keyText').textContent;
+    copyKey(keyText);
+}
+
+// Функция для переключения между платформами
+function switchPlatform(platform) {
+    // Убираем активный класс со всех табов и инструкций
+    document.querySelectorAll('.platform-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    document.querySelectorAll('.platform-instructions').forEach(instruction => {
+        instruction.classList.remove('active');
+    });
+
+    // Добавляем активный класс к выбранному табу и инструкции
+    document.querySelector(`[data-platform="${platform}"]`).classList.add('active');
+    document.getElementById(`${platform}-instructions`).classList.add('active');
+}
+
+// Инициализация обработчиков для табов платформ
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.platform-tab').forEach(tab => {
+        tab.addEventListener('click', function () {
+            const platform = this.getAttribute('data-platform');
+            switchPlatform(platform);
         });
     });
 
-    // Инициализируем свайп для всех устройств
+    // Инициализируем свайп при загрузке страницы
     initializeSwipe();
-}
+});
 
 // Переменные для свайпа
 let currentSwipeElement = null;

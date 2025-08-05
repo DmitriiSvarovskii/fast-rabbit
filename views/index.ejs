@@ -296,6 +296,124 @@
         </div>
     </div>
 
+    <!-- Модальное окно с инструкциями по настройке VPN -->
+    <div class="modal" id="instructionsModal">
+        <div class="modal-content instructions-modal-content">
+            <div class="modal-header">
+                <h3>Инструкция по настройке VPN</h3>
+                <button class="modal-close" id="closeInstructionsModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="instructions-intro">
+                    <p>Это ссылка для настройки приложения VPN. Скопируйте эту ссылку, затем вставьте ее в приложение в
+                        соответствии с инструкцией.</p>
+                </div>
+
+                <div class="key-display">
+                    <div class="key-text" id="keyText"></div>
+                    <button class="btn btn-primary copy-key-btn" onclick="copyKeyFromInstructions()">Копировать</button>
+                </div>
+
+                <div class="platform-tabs" id="platformTabs">
+                    <button class="platform-tab active" data-platform="ios">iPhone</button>
+                    <button class="platform-tab" data-platform="android">Android</button>
+                    <button class="platform-tab" data-platform="macos">MacOS</button>
+                    <button class="platform-tab" data-platform="windows">Windows</button>
+                </div>
+
+                <div class="platform-content">
+                    <!-- iOS инструкции -->
+                    <div class="platform-instructions active" id="ios-instructions">
+                        <h4>Инструкция по подключению VPN (iOS)</h4>
+                        <p class="instruction-source">Fast Rabbit VPN (Support) July 16, 2025</p>
+
+                        <div class="instruction-step">
+                            <h5>1. Скачайте приложение</h5>
+                            <p>1.1 Установите одно из следующих приложений из App Store:</p>
+                            <ul>
+                                <li><strong>Streisand</strong> (рекомендовано, в инструкции будет описано взаимодействие
+                                    именно с этим приложением)</li>
+                                <li>v2Box</li>
+                                <li>v2RayTun</li>
+                            </ul>
+                        </div>
+
+                        <div class="instruction-step">
+                            <h5>2. Добавьте ключ-конфигурацию</h5>
+                            <p>2.1 Скопируйте ключ-конфигурацию, полученную в боте @fast_rabbit_vpn_bot</p>
+                            <p>2.2 Откройте приложение Streisand</p>
+                            <p>2.3 Нажмите кнопку "+" в правом верхнем углу</p>
+                            <p>2.4 Выберите "Добавить из буфера"</p>
+                        </div>
+
+                        <div class="instruction-step">
+                            <h5>3. Подключитесь к VPN</h5>
+                            <p>3.1 Найдите и выберите добавленную конфигурацию в главном экране</p>
+                            <p>3.2 Нажмите кнопку подключения</p>
+                            <p>3.3 После нажатия кнопки подключения появится системное окно iOS с запросом на добавление
+                                VPN-конфигурации.</p>
+                            <p><strong>Нажмите «Разрешить», чтобы подтвердить. При необходимости введите пароль или
+                                    используйте Face ID / Touch ID для подтверждения действия.</strong></p>
+                        </div>
+                    </div>
+
+                    <!-- Android инструкции -->
+                    <div class="platform-instructions" id="android-instructions">
+                        <h4>Инструкция по подключению VPN (Android)</h4>
+                        <p class="instruction-source">Fast Rabbit VPN (Support) July 16, 2025</p>
+
+                        <div class="instruction-step">
+                            <h5>1. Скачайте приложение</h5>
+                            <p>1.1 Установите одно из следующих приложений из Google Play:</p>
+                            <ul>
+                                <li><strong>v2RayTun</strong> (рекомендовано, без рекламы — в инструкции будет описано
+                                    взаимодействие именно с этим приложением)</li>
+                                <li>v2Box (возможно наличие рекламы от приложения, при подключении)</li>
+                                <li>любое другое приложение, которое поддерживает vless протокол.</li>
+                            </ul>
+                        </div>
+
+                        <div class="instruction-step">
+                            <h5>2. Добавьте ключ-конфигурацию</h5>
+                            <p>2.1 Скопируйте ключ-конфигурацию, полученную в боте @fast_rabbit_vpn_bot</p>
+                            <p>2.2 Откройте приложение v2RayTun</p>
+                            <p>2.3 Нажмите кнопку "+" в правом верхнем углу</p>
+                            <p>2.4 Выберите "Импорт конфигурации из буфера обмена"</p>
+                        </div>
+
+                        <div class="instruction-step">
+                            <h5>3. Подключитесь к VPN</h5>
+                            <p>3.1 Найдите и выберите добавленную конфигурацию в разделе "Подключение"</p>
+                            <p>3.2 Нажмите кнопку подключения</p>
+                            <p>3.3 После нажатия кнопки подключения появится системное окно Android с запросом на
+                                создание VPN-соединения.</p>
+                            <p><strong>Нажмите «Разрешить», чтобы подтвердить. При необходимости — предоставьте
+                                    приложению разрешение на использование VPN.</strong></p>
+                        </div>
+                    </div>
+
+                    <!-- MacOS инструкции -->
+                    <div class="platform-instructions" id="macos-instructions">
+                        <h4>MacOS</h4>
+                        <p class="instruction-source">Fast Rabbit VPN (Support) July 16, 2025</p>
+                        <div class="instruction-step">
+                            <p><strong>В разработке</strong></p>
+                        </div>
+                    </div>
+
+                    <!-- Windows инструкции -->
+                    <div class="platform-instructions" id="windows-instructions">
+                        <h4>Windows</h4>
+                        <p class="instruction-source">Fast Rabbit VPN (Support) July 16, 2025</p>
+                        <div class="instruction-step">
+                            <p><strong>В разработке</strong></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="/js/app.js"></script>
 </body>
 
