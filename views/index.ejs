@@ -13,6 +13,10 @@
     <script>
         // Проверяем, что скрипт загружается
         console.log('HTML loaded');
+        // Убедимся, что кнопка "Назад" скрыта на главной странице
+        if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.BackButton) {
+            window.Telegram.WebApp.BackButton.hide();
+        }
         document.addEventListener('DOMContentLoaded', () => {
             console.log('DOMContentLoaded from HTML');
             // Проверяем наличие элементов

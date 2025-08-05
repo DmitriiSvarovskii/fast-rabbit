@@ -174,9 +174,17 @@
             if (tg.BackButton) {
                 tg.BackButton.show();
                 tg.BackButton.onClick(() => {
+                    tg.BackButton.hide(); // Скрываем кнопку перед переходом
                     window.location.href = '/';
                 });
             }
+
+            // При уходе со страницы скрываем кнопку
+            window.addEventListener('beforeunload', () => {
+                if (tg.BackButton) {
+                    tg.BackButton.hide();
+                }
+            });
         }
 
         // Функция для копирования ключа
