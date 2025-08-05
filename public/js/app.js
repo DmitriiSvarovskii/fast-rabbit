@@ -425,25 +425,44 @@ function updateKeysList(keys) {
 
         // Добавляем обработчик клика на весь элемент для открытия инструкций
         deviceElement.addEventListener('click', (e) => {
+            console.log('Клик по элементу ключа:', e.target);
+
             // Не открываем инструкции, если кликнули на кнопку копирования или область удаления
             if (e.target.closest('.copy-btn') || e.target.closest('.delete-action')) {
+                console.log('Клик по кнопке копирования или области удаления - игнорируем');
                 return;
             }
 
             // Проверяем, что элемент не находится в состоянии свайпа
             if (currentSwipeElement && currentSwipeElement.classList.contains('swiped')) {
+                console.log('Элемент в состоянии свайпа - игнорируем клик');
                 return; // Не обрабатываем клик, если элемент свайпнут
             }
 
+            console.log('Открываем инструкции для ключа:', key.key);
             showKeyInstructions(key);
         });
 
         // Добавляем обработчик для кнопки копирования
         const copyBtn = deviceElement.querySelector('.copy-btn');
         copyBtn.addEventListener('click', (e) => {
+            console.log('Клик по кнопке копирования');
             e.stopPropagation(); // Предотвращаем всплытие события
             e.preventDefault(); // Предотвращаем стандартное поведение
             copyKey(key.key);
+        });
+
+        // Добавляем обработчик для области удаления
+        const deleteAction = deviceElement.querySelector('.delete-action');
+        deleteAction.addEventListener('click', (e) => {
+            console.log('Клик по области удаления');
+            e.stopPropagation(); // Предотвращаем всплытие события
+            e.preventDefault(); // Предотвращаем стандартное поведение
+
+            const keyId = deviceElement.getAttribute('data-key-id');
+            if (keyId) {
+                showDeleteConfirmation(keyId);
+            }
         });
 
         keysList.appendChild(deviceElement);
@@ -455,14 +474,27 @@ function updateKeysList(keys) {
 
 // Функция для показа инструкций по ключу
 function showKeyInstructions(key) {
+    console.log('Вызывается showKeyInstructions для ключа:', key.key);
+
     const instructionsModal = document.getElementById('instructionsModal');
     const keyTextElement = document.getElementById('keyText');
     const platformTabs = document.getElementById('platformTabs');
+
+    if (!instructionsModal) {
+        console.error('Модалка инструкций не найдена!');
+        return;
+    }
+
+    if (!keyTextElement) {
+        console.error('Элемент для отображения ключа не найден!');
+        return;
+    }
 
     // Устанавливаем текст ключа
     keyTextElement.textContent = key.key;
 
     // Показываем модалку
+    console.log('Открываем модалку инструкций');
     openModalWithFullscreen(instructionsModal);
 }
 
@@ -577,11 +609,8 @@ function handleTouchEnd(e) {
         currentSwipeElement.classList.add('swiped');
         currentSwipeElement.style.transform = 'translateX(-80px)';
 
-        // Показываем подтверждение удаления
-        const keyId = currentSwipeElement.getAttribute('data-key-id');
-        if (keyId) {
-            showDeleteConfirmation(keyId);
-        }
+        // НЕ показываем подтверждение удаления автоматически
+        // Пользователь должен кликнуть на область удаления
     } else {
         // Возвращаем в исходное положение
         currentSwipeElement.classList.remove('swiped');
@@ -629,11 +658,8 @@ function handleMouseEnd(e) {
         currentSwipeElement.classList.add('swiped');
         currentSwipeElement.style.transform = 'translateX(-80px)';
 
-        // Показываем подтверждение удаления
-        const keyId = currentSwipeElement.getAttribute('data-key-id');
-        if (keyId) {
-            showDeleteConfirmation(keyId);
-        }
+        // НЕ показываем подтверждение удаления автоматически
+        // Пользователь должен кликнуть на область удаления
     } else {
         currentSwipeElement.classList.remove('swiped');
         currentSwipeElement.style.transform = 'translateX(0)';

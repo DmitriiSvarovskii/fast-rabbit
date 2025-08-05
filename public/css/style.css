@@ -266,14 +266,24 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: right 0.3s ease;
+    transition: right 0.3s ease, background-color 0.3s ease;
     border-radius: 0 16px 16px 0;
+    cursor: pointer;
 }
 
 .delete-action::before {
     content: '🗑️';
     font-size: 20px;
     color: white;
+    transition: transform 0.2s ease;
+}
+
+.delete-action:hover {
+    background-color: #c82333;
+}
+
+.delete-action:hover::before {
+    transform: scale(1.1);
 }
 
 /* Состояние свайпа */
