@@ -4,7 +4,7 @@ const axios = require('axios');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:8080';
+const API_BASE_URL = process.env.API_BASE_URL || 'http://127.0.0.1:8080';
 
 // Настройка EJS
 app.set('view engine', 'ejs');
@@ -209,5 +209,5 @@ app.post('/api/keys', async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Fast Rabbit VPN server running on port ${PORT}`);
   console.log(`API Base URL: ${API_BASE_URL}`);
-  console.log(`Open http://localhost:${PORT} in your browser`);
+  console.log(`Open http://127.0.0.1:${PORT} in your browser`);
 });
