@@ -4,7 +4,7 @@ let tg = window.Telegram.WebApp;
 // Настройка Telegram Web App
 if (tg) {
     tg.ready();
-    tg.expand();
+    // tg.expand(); // Убираем expand для fullscreen режима
     tg.enableClosingConfirmation();
 
     // Установка основной кнопки
