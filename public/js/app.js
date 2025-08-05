@@ -436,7 +436,7 @@ function updateKeysList(keys) {
             if (e.target.closest('.copy-btn')) {
                 return;
             }
-            showKeyInstructions(key);
+            window.location.href = `/key/${key.id}`;
         });
 
         const copyBtn = deviceElement.querySelector('.copy-btn');

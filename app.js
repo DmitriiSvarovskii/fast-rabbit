@@ -76,6 +76,30 @@ app.get('/', async (req, res) => {
   }
 });
 
+// Страница ключа
+app.get('/key/:id', async (req, res) => {
+  try {
+    // Получаем данные пользователя (используем ID 1 для демо)
+    const userResponse = await axios.get(`${API_BASE_URL}/user/1`);
+    const user = userResponse.data;
+
+    // Находим ключ по ID
+    const key = user.keys.find(k => k.id == req.params.id);
+
+    if (!key) {
+      return res.redirect('/');
+    }
+
+    res.render('key', {
+      title: 'Конфигурация VPN',
+      key: key
+    });
+  } catch (error) {
+    console.error('Error fetching key:', error.message);
+    res.redirect('/');
+  }
+});
+
 // API для пополнения баланса
 app.post('/api/payment', async (req, res) => {
   try {
