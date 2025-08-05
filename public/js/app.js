@@ -85,10 +85,6 @@ if (tg) {
             }, 300);
         }
     }, { passive: true });
-
-    // Установка основной кнопки
-    // tg.MainButton.setText('Главная');
-    // tg.MainButton.show();
 }
 
 // Элементы DOM
@@ -103,7 +99,6 @@ const historyModal = document.getElementById('historyModal');
 const deleteModal = document.getElementById('deleteModal');
 const serverModal = document.getElementById('serverModal');
 const createKeyModal = document.getElementById('createKeyModal');
-const instructionsModal = document.getElementById('instructionsModal'); // Добавляем модалку инструкций
 
 // Кнопки закрытия модальных окон
 const closeBalanceModal = document.getElementById('closeBalanceModal');
@@ -111,7 +106,6 @@ const closeHistoryModal = document.getElementById('closeHistoryModal');
 const closeDeleteModal = document.getElementById('closeDeleteModal');
 const closeServerModal = document.getElementById('closeServerModal');
 const closeCreateKeyModal = document.getElementById('closeCreateKeyModal');
-const closeInstructionsModal = document.getElementById('closeInstructionsModal'); // Кнопка закрытия инструкций
 
 // Кнопки отмены
 const cancelBalanceBtn = document.getElementById('cancelBalanceBtn');
@@ -125,7 +119,6 @@ const confirmCreateKeyBtn = document.getElementById('confirmCreateKeyBtn');
 
 // Поля ввода
 const balanceAmountInput = document.getElementById('balanceAmountInput');
-const keyText = document.getElementById('keyText'); // Поле для отображения ключа в инструкциях
 
 // Функции для работы с модальными окнами
 function showModal(modal) {
@@ -181,23 +174,6 @@ closeCreateKeyModal.addEventListener('click', () => {
     hideModal(createKeyModal);
 });
 
-closeInstructionsModal.addEventListener('click', () => {
-    hideModal(instructionsModal);
-    if (tg && tg.BackButton) {
-        tg.BackButton.hide();
-    }
-});
-
-// Закрытие модалки инструкций по клику вне её
-instructionsModal.addEventListener('click', (e) => {
-    if (e.target === instructionsModal) {
-        hideModal(instructionsModal);
-        if (tg && tg.BackButton) {
-            tg.BackButton.hide();
-        }
-    }
-});
-
 cancelBalanceBtn.addEventListener('click', () => {
     hideModal(balanceModal);
     clearModalInputs();
@@ -205,7 +181,6 @@ cancelBalanceBtn.addEventListener('click', () => {
 
 cancelDeleteBtn.addEventListener('click', () => {
     hideModal(deleteModal);
-    showKeyInstructions(currentKey);
 });
 
 cancelCreateKeyBtn.addEventListener('click', () => {
@@ -242,12 +217,6 @@ serverModal.addEventListener('click', (e) => {
 createKeyModal.addEventListener('click', (e) => {
     if (e.target === createKeyModal) {
         hideModal(createKeyModal);
-    }
-});
-
-instructionsModal.addEventListener('click', (e) => {
-    if (e.target === instructionsModal) {
-        hideModal(instructionsModal);
     }
 });
 
@@ -364,8 +333,6 @@ balanceAmountInput.addEventListener('keypress', (e) => {
     }
 });
 
-
-
 // Обработка ошибок сети
 window.addEventListener('online', () => {
     showNotification('Соединение восстановлено', 'success');
@@ -460,86 +427,12 @@ function updateKeysList(keys) {
 
         keysList.appendChild(deviceElement);
     });
-
-
 }
-
-// Функция для показа инструкций по ключу
-function showKeyInstructions(key) {
-    currentKey = key; // Сохраняем текущий ключ
-    const instructionsModal = document.getElementById('instructionsModal');
-    const keyTextElement = document.getElementById('keyText');
-    const deleteBtn = document.getElementById('deleteKeyFromModalBtn');
-
-    if (!instructionsModal || !keyTextElement || !deleteBtn) {
-        console.error('Необходимые элементы модального окна не найдены!');
-        return;
-    }
-
-    // Устанавливаем текст ключа
-    keyTextElement.textContent = key.key;
-
-    // Настраиваем кнопку удаления
-    deleteBtn.onclick = () => {
-        hideModal(instructionsModal); // Сначала скрыть модалку инструкций
-        showDeleteConfirmation(key.id); // Затем показать подтверждение удаления
-        if (tg && tg.BackButton) {
-            tg.BackButton.hide();
-        }
-    };
-
-    // Настраиваем кнопку "Назад" в Telegram Web App
-    if (tg && tg.BackButton) {
-        tg.BackButton.show();
-        tg.BackButton.onClick(() => {
-            hideModal(instructionsModal);
-            tg.BackButton.hide();
-        });
-    }
-
-    // Показываем модалку
-    openModalWithFullscreen(instructionsModal);
-}
-
-// Функция для копирования ключа из модалки инструкций
-function copyKeyFromInstructions() {
-    const keyText = document.getElementById('keyText').textContent;
-    copyKey(keyText);
-}
-
-// Функция для переключения между платформами
-function switchPlatform(platform) {
-    // Убираем активный класс со всех табов и инструкций
-    document.querySelectorAll('.platform-tab').forEach(tab => {
-        tab.classList.remove('active');
-    });
-    document.querySelectorAll('.platform-instructions').forEach(instruction => {
-        instruction.classList.remove('active');
-    });
-
-    // Добавляем активный класс к выбранному табу и инструкции
-    document.querySelector(`[data-platform="${platform}"]`).classList.add('active');
-    document.getElementById(`${platform}-instructions`).classList.add('active');
-}
-
-// Инициализация обработчиков для табов платформ
-document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll('.platform-tab').forEach(tab => {
-        tab.addEventListener('click', function () {
-            const platform = this.getAttribute('data-platform');
-            switchPlatform(platform);
-        });
-    });
-
-
-});
 
 // Функция для сброса состояния свайпа (оставляем пустой для совместимости, если где-то вызывается)
 function resetSwipeState() {
     // Больше ничего не делаем
 }
-
-
 
 // Функция показа подтверждения удаления
 function showDeleteConfirmation(keyId) {
@@ -790,21 +683,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Добавляем обработчики для кнопок копирования и открытия модального окна
     document.querySelectorAll('.device').forEach(deviceElement => {
-        // Обработчик для открытия модального окна
+        // Обработчик для открытия страницы ключа
         deviceElement.addEventListener('click', (e) => {
             if (e.target.closest('.copy-btn')) {
                 return;
             }
             const keyId = deviceElement.getAttribute('data-key-id');
-            const keyElement = deviceElement.querySelector('.copy-btn');
-            const keyValue = keyElement.getAttribute('onclick')?.match(/'([^']+)'/)?.[1] || keyElement.getAttribute('data-key');
-
             if (keyId) {
-                showKeyInstructions({
-                    id: keyId,
-                    key: keyValue,
-                    country: deviceElement.querySelector('.device-title').textContent.trim()
-                });
+                window.location.href = `/key/${keyId}`;
             }
         });
 
@@ -814,7 +700,7 @@ document.addEventListener('DOMContentLoaded', () => {
             copyBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                const keyValue = copyBtn.getAttribute('onclick')?.match(/'([^']+)'/)?.[1] || copyBtn.getAttribute('data-key');
+                const keyValue = copyBtn.getAttribute('data-key');
                 if (keyValue) {
                     copyKey(keyValue);
                 }
@@ -822,10 +708,3 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
-
-if (instructionsModal) {
-    const modalContent = instructionsModal.querySelector('.modal-content');
-    if (modalContent) {
-        modalContent.addEventListener('click', e => e.stopPropagation());
-    }
-}

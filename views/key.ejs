@@ -4,143 +4,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Конфигурация VPN</title>
+    <title>
+        <%= title %>
+    </title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/style.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 
-<body class="key-page">
-    <div class="key-page-content">
-        <div class="instructions-intro">
-            <p>Это ссылка для настройки приложения VPN. Скопируйте эту ссылку, затем вставьте ее в приложение в
-                соответствии с инструкцией.</p>
-        </div>
-
-        <div class="key-display">
-            <div class="key-text" id="keyText">
-                <%= key.key %>
+<body>
+    <div class="key-page">
+        <div class="key-page-content">
+            <div class="instructions-intro">
+                <p>Это ссылка для настройки приложения VPN. Скопируйте эту ссылку, затем вставьте ее в приложение в
+                    соответствии с инструкцией.</p>
             </div>
-            <div class="key-actions">
-                <button class="delete-key-btn" id="deleteKeyBtn">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M3 6h18"></path>
-                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-                    </svg>
-                    Удалить
-                </button>
-                <button class="copy-key-btn" id="copyKeyBtn">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                    </svg>
-                    Копировать
-                </button>
-            </div>
-        </div>
 
-        <div class="platform-tabs" id="platformTabs">
-            <button class="platform-tab active" data-platform="ios">iPhone</button>
-            <button class="platform-tab" data-platform="android">Android</button>
-            <button class="platform-tab" data-platform="macos">MacOS</button>
-            <button class="platform-tab" data-platform="windows">Windows</button>
-        </div>
-
-        <div class="platform-content">
-            <!-- iOS инструкции -->
-            <div class="platform-instructions active" id="ios-instructions">
-                <h4>Инструкция по подключению VPN (iOS)</h4>
-                <p class="instruction-source">Fast Rabbit VPN (Support) July 16, 2025</p>
-
-                <div class="instruction-step">
-                    <h5>1. Скачайте приложение</h5>
-                    <p>1.1 Установите одно из следующих приложений из App Store:</p>
-                    <ul>
-                        <li><strong>Streisand</strong> (рекомендовано, в инструкции будет описано взаимодействие именно
-                            с этим приложением)</li>
-                        <li>v2Box</li>
-                        <li>v2RayTun</li>
-                    </ul>
+            <div class="key-display">
+                <div class="key-text" id="keyText">
+                    <%= key.key %>
                 </div>
-
-                <div class="instruction-step">
-                    <h5>2. Добавьте ключ-конфигурацию</h5>
-                    <p>2.1 Скопируйте ключ-конфигурацию, полученную в боте @fast_rabbit_vpn_bot</p>
-                    <p>2.2 Откройте приложение Streisand</p>
-                    <p>2.3 Нажмите кнопку "+" в правом верхнем углу</p>
-                    <p>2.4 Выберите "Добавить из буфера"</p>
-                </div>
-
-                <div class="instruction-step">
-                    <h5>3. Подключитесь к VPN</h5>
-                    <p>3.1 Найдите и выберите добавленную конфигурацию в главном экране</p>
-                    <p>3.2 Нажмите кнопку подключения</p>
-                    <p>3.3 После нажатия кнопки подключения появится системное окно iOS с запросом на добавление
-                        VPN-конфигурации.</p>
-                    <p><strong>Нажмите «Разрешить», чтобы подтвердить. При необходимости введите пароль или используйте
-                            Face ID / Touch ID для подтверждения действия.</strong></p>
+                <div class="key-actions">
+                    <button class="delete-key-btn" id="deleteKeyBtn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 6h18"></path>
+                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                        </svg>
+                        Удалить
+                    </button>
+                    <button class="copy-key-btn" onclick="copyKey('<%= key.key %>')">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                        Копировать
+                    </button>
                 </div>
             </div>
 
-            <!-- Android инструкции -->
-            <div class="platform-instructions" id="android-instructions">
-                <h4>Инструкция по подключению VPN (Android)</h4>
-                <p class="instruction-source">Fast Rabbit VPN (Support) July 16, 2025</p>
-
-                <div class="instruction-step">
-                    <h5>1. Скачайте приложение</h5>
-                    <p>1.1 Установите одно из следующих приложений из Google Play:</p>
-                    <ul>
-                        <li><strong>v2RayTun</strong> (рекомендовано, без рекламы — в инструкции будет описано
-                            взаимодействие именно с этим приложением)</li>
-                        <li>v2Box (возможно наличие рекламы от приложения, при подключении)</li>
-                        <li>любое другое приложение, которое поддерживает vless протокол.</li>
-                    </ul>
-                </div>
-
-                <div class="instruction-step">
-                    <h5>2. Добавьте ключ-конфигурацию</h5>
-                    <p>2.1 Скопируйте ключ-конфигурацию, полученную в боте @fast_rabbit_vpn_bot</p>
-                    <p>2.2 Откройте приложение v2RayTun</p>
-                    <p>2.3 Нажмите кнопку "+" в правом верхнем углу</p>
-                    <p>2.4 Выберите "Импорт конфигурации из буфера обмена"</p>
-                </div>
-
-                <div class="instruction-step">
-                    <h5>3. Подключитесь к VPN</h5>
-                    <p>3.1 Найдите и выберите добавленную конфигурацию в разделе "Подключение"</p>
-                    <p>3.2 Нажмите кнопку подключения</p>
-                    <p>3.3 После нажатия кнопки подключения появится системное окно Android с запросом на создание
-                        VPN-соединения.</p>
-                    <p><strong>Нажмите «Разрешить», чтобы подтвердить. При необходимости — предоставьте приложению
-                            разрешение на использование VPN.</strong></p>
-                </div>
+            <div class="platform-tabs" id="platformTabs">
+                <button class="platform-tab active" data-platform="ios">iPhone</button>
+                <button class="platform-tab" data-platform="android">Android</button>
+                <button class="platform-tab" data-platform="macos">MacOS</button>
+                <button class="platform-tab" data-platform="windows">Windows</button>
             </div>
 
-            <!-- MacOS инструкции -->
-            <div class="platform-instructions" id="macos-instructions">
-                <h4>MacOS</h4>
-                <p class="instruction-source">Fast Rabbit VPN (Support) July 16, 2025</p>
-                <div class="instruction-step">
-                    <p><strong>В разработке</strong></p>
-                </div>
-            </div>
+            <div class="platform-content">
+                <!-- iOS инструкции -->
+                <div class="platform-instructions active" id="ios-instructions">
+                    <h4>Инструкция по подключению VPN (iOS)</h4>
+                    <p class="instruction-source">Fast Rabbit VPN (Support) July 16, 2025</p>
 
-            <!-- Windows инструкции -->
-            <div class="platform-instructions" id="windows-instructions">
-                <h4>Windows</h4>
-                <p class="instruction-source">Fast Rabbit VPN (Support) July 16, 2025</p>
-                <div class="instruction-step">
-                    <p><strong>В разработке</strong></p>
+                    <div class="instruction-step">
+                        <h5>1. Скачайте приложение</h5>
+                        <p>1.1 Установите одно из следующих приложений из App Store:</p>
+                        <ul>
+                            <li><strong>Streisand</strong> (рекомендовано, в инструкции будет описано взаимодействие
+                                именно с этим приложением)</li>
+                            <li>v2Box</li>
+                            <li>v2RayTun</li>
+                        </ul>
+                    </div>
+
+                    <div class="instruction-step">
+                        <h5>2. Добавьте ключ-конфигурацию</h5>
+                        <p>2.1 Скопируйте ключ-конфигурацию, полученную в боте @fast_rabbit_vpn_bot</p>
+                        <p>2.2 Откройте приложение Streisand</p>
+                        <p>2.3 Нажмите кнопку "+" в правом верхнем углу</p>
+                        <p>2.4 Выберите "Добавить из буфера"</p>
+                    </div>
+
+                    <div class="instruction-step">
+                        <h5>3. Подключитесь к VPN</h5>
+                        <p>3.1 Найдите и выберите добавленную конфигурацию в главном экране</p>
+                        <p>3.2 Нажмите кнопку подключения</p>
+                        <p>3.3 После нажатия кнопки подключения появится системное окно iOS с запросом на добавление
+                            VPN-конфигурации.</p>
+                        <p><strong>Нажмите «Разрешить», чтобы подтвердить. При необходимости введите пароль или
+                                используйте Face ID / Touch ID для подтверждения действия.</strong></p>
+                    </div>
+                </div>
+
+                <!-- Android инструкции -->
+                <div class="platform-instructions" id="android-instructions">
+                    <h4>Инструкция по подключению VPN (Android)</h4>
+                    <p class="instruction-source">Fast Rabbit VPN (Support) July 16, 2025</p>
+
+                    <div class="instruction-step">
+                        <h5>1. Скачайте приложение</h5>
+                        <p>1.1 Установите одно из следующих приложений из Google Play:</p>
+                        <ul>
+                            <li><strong>v2RayTun</strong> (рекомендовано, без рекламы — в инструкции будет описано
+                                взаимодействие именно с этим приложением)</li>
+                            <li>v2Box (возможно наличие рекламы от приложения, при подключении)</li>
+                            <li>любое другое приложение, которое поддерживает vless протокол.</li>
+                        </ul>
+                    </div>
+
+                    <div class="instruction-step">
+                        <h5>2. Добавьте ключ-конфигурацию</h5>
+                        <p>2.1 Скопируйте ключ-конфигурацию, полученную в боте @fast_rabbit_vpn_bot</p>
+                        <p>2.2 Откройте приложение v2RayTun</p>
+                        <p>2.3 Нажмите кнопку "+" в правом верхнем углу</p>
+                        <p>2.4 Выберите "Импорт конфигурации из буфера обмена"</p>
+                    </div>
+
+                    <div class="instruction-step">
+                        <h5>3. Подключитесь к VPN</h5>
+                        <p>3.1 Найдите и выберите добавленную конфигурацию в разделе "Подключение"</p>
+                        <p>3.2 Нажмите кнопку подключения</p>
+                        <p>3.3 После нажатия кнопки подключения появится системное окно Android с запросом на
+                            создание VPN-соединения.</p>
+                        <p><strong>Нажмите «Разрешить», чтобы подтвердить. При необходимости — предоставьте
+                                приложению разрешение на использование VPN.</strong></p>
+                    </div>
+                </div>
+
+                <!-- MacOS инструкции -->
+                <div class="platform-instructions" id="macos-instructions">
+                    <h4>MacOS</h4>
+                    <p class="instruction-source">Fast Rabbit VPN (Support) July 16, 2025</p>
+                    <div class="instruction-step">
+                        <p><strong>В разработке</strong></p>
+                    </div>
+                </div>
+
+                <!-- Windows инструкции -->
+                <div class="platform-instructions" id="windows-instructions">
+                    <h4>Windows</h4>
+                    <p class="instruction-source">Fast Rabbit VPN (Support) July 16, 2025</p>
+                    <div class="instruction-step">
+                        <p><strong>В разработке</strong></p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="deleteConfirmModal" class="modal">
+    <!-- Модальное окно для подтверждения удаления -->
+    <div class="modal" id="deleteModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Подтверждение удаления</h3>
@@ -148,8 +153,7 @@
             </div>
             <div class="modal-body">
                 <p>Вы уверены, что хотите удалить эту конфигурацию?</p>
-                <p class="delete-key-info" id="deleteKeyInfo">Конфигурация: <%= key.country %>
-                </p>
+                <p class="delete-key-info" id="deleteKeyInfo"></p>
                 <div class="modal-actions">
                     <button class="btn btn-secondary" id="cancelDeleteBtn">Отмена</button>
                     <button class="btn btn-danger" id="confirmDeleteBtn">Удалить</button>
@@ -159,37 +163,41 @@
     </div>
 
     <script>
-        // Инициализация Telegram Web App
         let tg = window.Telegram.WebApp;
-        const keyId = '<%= key.id %>';
-        const keyValue = '<%= key.key %>';
 
+        // Настройка Telegram Web App
         if (tg) {
             tg.ready();
-            tg.BackButton.show();
-            tg.BackButton.onClick(() => {
-                window.location.href = '/';
-            });
+            tg.expand();
+
+            // Показываем кнопку "Назад"
+            if (tg.BackButton) {
+                tg.BackButton.show();
+                tg.BackButton.onClick(() => {
+                    window.location.href = '/';
+                });
+            }
         }
 
-        // Копирование ключа
-        document.getElementById('copyKeyBtn').addEventListener('click', () => {
-            const keyText = document.getElementById('keyText').textContent;
+        // Функция для копирования ключа
+        function copyKey(keyValue) {
             if (navigator.clipboard) {
-                navigator.clipboard.writeText(keyText).then(() => {
+                navigator.clipboard.writeText(keyValue).then(() => {
                     showNotification('Ключ скопирован', 'success');
+
+                    // Haptic feedback для Telegram
                     if (tg && tg.HapticFeedback) {
                         tg.HapticFeedback.impactOccurred('light');
                     }
                 }).catch(() => {
-                    fallbackCopyTextToClipboard(keyText);
+                    fallbackCopyTextToClipboard(keyValue);
                 });
             } else {
-                fallbackCopyTextToClipboard(keyText);
+                fallbackCopyTextToClipboard(keyValue);
             }
-        });
+        }
 
-        // Fallback для копирования
+        // Fallback для копирования в старых браузерах
         function fallbackCopyTextToClipboard(text) {
             const textArea = document.createElement('textarea');
             textArea.value = text;
@@ -209,83 +217,6 @@
 
             document.body.removeChild(textArea);
         }
-
-        // Переключение платформ
-        document.querySelectorAll('.platform-tab').forEach(tab => {
-            tab.addEventListener('click', function () {
-                const platform = this.getAttribute('data-platform');
-
-                document.querySelectorAll('.platform-tab').forEach(t => {
-                    t.classList.remove('active');
-                });
-                document.querySelectorAll('.platform-instructions').forEach(instruction => {
-                    instruction.classList.remove('active');
-                });
-
-                this.classList.add('active');
-                document.getElementById(`${platform}-instructions`).classList.add('active');
-            });
-        });
-
-        // Модальное окно удаления
-        const deleteModal = document.getElementById('deleteConfirmModal');
-        const deleteBtn = document.getElementById('deleteKeyBtn');
-        const closeDeleteModal = document.getElementById('closeDeleteModal');
-        const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
-        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-
-        function showModal(modal) {
-            modal.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function hideModal(modal) {
-            modal.classList.remove('active');
-            document.body.style.overflow = 'auto';
-        }
-
-        deleteBtn.addEventListener('click', () => {
-            showModal(deleteModal);
-        });
-
-        closeDeleteModal.addEventListener('click', () => {
-            hideModal(deleteModal);
-        });
-
-        cancelDeleteBtn.addEventListener('click', () => {
-            hideModal(deleteModal);
-        });
-
-        deleteModal.addEventListener('click', (e) => {
-            if (e.target === deleteModal) {
-                hideModal(deleteModal);
-            }
-        });
-
-        confirmDeleteBtn.addEventListener('click', async () => {
-            try {
-                const response = await fetch(`/api/keys/${keyId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    if (tg && tg.HapticFeedback) {
-                        tg.HapticFeedback.impactOccurred('medium');
-                    }
-                    window.location.href = '/';
-                } else {
-                    showNotification(data.message || 'Ошибка при удалении', 'error');
-                }
-            } catch (error) {
-                console.error('Ошибка удаления:', error);
-                showNotification('Ошибка сети', 'error');
-            }
-        });
 
         // Система уведомлений
         function showNotification(message, type = 'info') {
@@ -307,6 +238,97 @@
                     }
                 }, 300);
             }, 3000);
+        }
+
+        // Функция для переключения между платформами
+        function switchPlatform(platform) {
+            document.querySelectorAll('.platform-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.platform-instructions').forEach(instruction => {
+                instruction.classList.remove('active');
+            });
+
+            document.querySelector(`[data-platform="${platform}"]`).classList.add('active');
+            document.getElementById(`${platform}-instructions`).classList.add('active');
+        }
+
+        // Инициализация обработчиков для табов платформ
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.platform-tab').forEach(tab => {
+                tab.addEventListener('click', function () {
+                    const platform = this.getAttribute('data-platform');
+                    switchPlatform(platform);
+                });
+            });
+
+            // Обработчик для кнопки удаления
+            const deleteBtn = document.getElementById('deleteKeyBtn');
+            const deleteModal = document.getElementById('deleteModal');
+            const closeDeleteModal = document.getElementById('closeDeleteModal');
+            const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+            const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+
+            deleteBtn.addEventListener('click', () => {
+                document.getElementById('deleteKeyInfo').textContent = `Конфигурация: <%= key.country %>`;
+                showModal(deleteModal);
+            });
+
+            closeDeleteModal.addEventListener('click', () => {
+                hideModal(deleteModal);
+            });
+
+            cancelDeleteBtn.addEventListener('click', () => {
+                hideModal(deleteModal);
+            });
+
+            deleteModal.addEventListener('click', (e) => {
+                if (e.target === deleteModal) {
+                    hideModal(deleteModal);
+                }
+            });
+
+            confirmDeleteBtn.addEventListener('click', async () => {
+                try {
+                    const response = await fetch('/api/keys/<%= key.id %>', {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    });
+
+                    if (response.ok) {
+                        hideModal(deleteModal);
+                        showNotification('Конфигурация удалена', 'success');
+
+                        // Haptic feedback для Telegram
+                        if (tg && tg.HapticFeedback) {
+                            tg.HapticFeedback.impactOccurred('medium');
+                        }
+
+                        // Возвращаемся на главную страницу
+                        setTimeout(() => {
+                            window.location.href = '/';
+                        }, 1000);
+                    } else {
+                        showNotification('Ошибка при удалении', 'error');
+                    }
+                } catch (error) {
+                    console.error('Ошибка удаления:', error);
+                    showNotification('Ошибка сети', 'error');
+                }
+            });
+        });
+
+        // Функции для работы с модальными окнами
+        function showModal(modal) {
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function hideModal(modal) {
+            modal.classList.remove('active');
+            document.body.style.overflow = 'auto';
         }
     </script>
 </body>
