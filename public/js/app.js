@@ -426,6 +426,13 @@ function updateKeysList(keys) {
             if (e.target.closest('.copy-btn') || e.target.closest('.delete-action')) {
                 return;
             }
+
+            // Проверяем, что это был настоящий клик, а не свайп
+            const touchDuration = Date.now() - touchStartTime;
+            if (hasMoved || touchDuration > 300) {
+                return; // Это был свайп или долгое касание, не обрабатываем как клик
+            }
+
             showKeyInstructions(key);
         });
 
@@ -495,6 +502,8 @@ let currentSwipeElement = null;
 let startX = 0;
 let currentX = 0;
 let isSwiping = false;
+let touchStartTime = 0;
+let hasMoved = false;
 
 // Инициализация свайпа
 function initializeSwipe() {
@@ -519,6 +528,8 @@ function handleTouchStart(e) {
     startX = e.touches[0].clientX;
     currentSwipeElement = e.currentTarget;
     isSwiping = true;
+    touchStartTime = Date.now(); // Запоминаем время начала касания
+    hasMoved = false;
 }
 
 function handleTouchMove(e) {
@@ -526,6 +537,10 @@ function handleTouchMove(e) {
 
     currentX = e.touches[0].clientX;
     const diffX = currentX - startX;
+
+    if (Math.abs(diffX) > 5) {
+        hasMoved = true; // Отмечаем, что было движение
+    }
 
     if (diffX < 0) {
         e.preventDefault();
@@ -539,8 +554,8 @@ function handleTouchEnd(e) {
 
     const diffX = currentX - startX;
 
-    if (diffX < -40) {
-        // Свайп влево достаточно для показа области удаления
+    if (diffX < -60) {
+        // Свайп влево достаточно для показа области удаления (увеличили порог)
         currentSwipeElement.classList.add('swiped');
         currentSwipeElement.style.transform = 'translateX(-80px)';
 
@@ -557,6 +572,8 @@ function handleTouchEnd(e) {
 
     isSwiping = false;
     currentSwipeElement = null;
+    hasMoved = false;
+    touchStartTime = 0;
 }
 
 // Mouse обработчики
@@ -564,6 +581,8 @@ function handleMouseStart(e) {
     startX = e.clientX;
     currentSwipeElement = e.currentTarget;
     isSwiping = true;
+    touchStartTime = Date.now(); // Запоминаем время начала касания
+    hasMoved = false;
 }
 
 function handleMouseMove(e) {
@@ -571,6 +590,10 @@ function handleMouseMove(e) {
 
     currentX = e.clientX;
     const diffX = currentX - startX;
+
+    if (Math.abs(diffX) > 5) {
+        hasMoved = true; // Отмечаем, что было движение
+    }
 
     if (diffX < 0) {
         const translateX = Math.max(diffX, -80);
@@ -583,7 +606,8 @@ function handleMouseEnd(e) {
 
     const diffX = currentX - startX;
 
-    if (diffX < -40) {
+    if (diffX < -60) {
+        // Свайп влево достаточно для показа области удаления (увеличили порог)
         currentSwipeElement.classList.add('swiped');
         currentSwipeElement.style.transform = 'translateX(-80px)';
 
@@ -599,6 +623,8 @@ function handleMouseEnd(e) {
 
     isSwiping = false;
     currentSwipeElement = null;
+    hasMoved = false;
+    touchStartTime = 0;
 }
 
 // Функция показа подтверждения удаления
