@@ -104,10 +104,167 @@ function initializeEventHandlers() {
     // Обработчик для добавления ключа
     const addKeyBtn = document.getElementById('addKeyBtn');
     if (addKeyBtn) {
-        addKeyBtn.addEventListener('click', () => {
+        addKeyBtn.addEventListener('click', async () => {
             console.log('Add key button clicked');
-            loadServers();
-            showModal(serverModal);
+            try {
+                console.log('Loading servers...');
+                const response = await fetch('/api/servers');
+                console.log('Servers response:', response);
+                const servers = await response.json();
+                console.log('Servers data:', servers);
+
+                const serversList = document.getElementById('serversList');
+                if (serversList) {
+                    serversList.innerHTML = '';
+
+                    servers.forEach(server => {
+                        console.log('Creating server element:', server);
+                        const serverElement = document.createElement('div');
+                        serverElement.className = 'server-item';
+                        serverElement.setAttribute('data-server-id', server.id);
+                        serverElement.setAttribute('data-server-country', server.country);
+
+                        const flag = getCountryFlag(server.country);
+
+                        serverElement.innerHTML = `
+                            <div class="server-icon">${flag}</div>
+                            <div class="server-info">
+                                <div class="server-name">${server.country}</div>
+                                <div class="server-description">Нажмите для создания конфигурации</div>
+                            </div>
+                        `;
+
+                        serverElement.addEventListener('click', () => {
+                            console.log('Server selected:', server);
+                            const serverInfo = document.getElementById('serverInfo');
+                            if (serverInfo) {
+                                serverInfo.innerHTML = `${flag} ${server.country}`;
+                            }
+
+                            hideModal(serverModal);
+                            showModal(createKeyModal);
+
+                            // Настраиваем кнопку создания ключа
+                            const confirmCreateKeyBtn = document.getElementById('confirmCreateKeyBtn');
+                            if (confirmCreateKeyBtn) {
+                                confirmCreateKeyBtn.onclick = async () => {
+                                    console.log('Creating key for server:', server);
+                                    try {
+                                        const response = await fetch('/api/keys', {
+                                            method: 'POST',
+                                            headers: {
+                                                'Content-Type': 'application/json',
+                                            },
+                                            body: JSON.stringify({
+                                                server_id: server.id
+                                            })
+                                        });
+
+                                        console.log('Create key response:', response);
+                                        const data = await response.json();
+                                        console.log('Create key data:', data);
+
+                                        if (data.id) {
+                                            hideModal(createKeyModal);
+                                            showNotification('Конфигурация создана успешно!', 'success');
+
+                                            // Haptic feedback для Telegram
+                                            if (tg && tg.HapticFeedback) {
+                                                try {
+                                                    tg.HapticFeedback.impactOccurred('medium');
+                                                } catch (e) {
+                                                    console.warn('Failed to trigger haptic feedback:', e);
+                                                }
+                                            }
+
+                                            // Обновляем список ключей
+                                            const userResponse = await fetch('/api/user/1');
+                                            const userData = await userResponse.json();
+
+                                            // Обновляем количество ключей
+                                            const subtitle = document.querySelector('.subtitle');
+                                            if (subtitle) {
+                                                subtitle.textContent = `Количество ключей: ${userData.keys.length}`;
+                                            }
+
+                                            // Обновляем список ключей
+                                            const keysList = document.getElementById('keysList');
+                                            if (keysList && userData.keys) {
+                                                keysList.innerHTML = '';
+                                                userData.keys.forEach((key) => {
+                                                    const deviceElement = document.createElement('div');
+                                                    deviceElement.className = 'device';
+                                                    deviceElement.setAttribute('data-id', key.id);
+                                                    deviceElement.setAttribute('data-key-id', key.id);
+
+                                                    const createdDate = new Date(key.created_at).toLocaleDateString('ru-RU');
+
+                                                    deviceElement.innerHTML = `
+                                                        <div class="device-icon"></div>
+                                                        <div class="device-info">
+                                                            <div class="device-title">${key.country}</div>
+                                                            <div class="device-date">Добавлено ${createdDate}</div>
+                                                        </div>
+                                                        <div class="device-actions">
+                                                            <button class="copy-btn" data-key="${key.key}" title="Копировать">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m0 0h2a2 2 0 012 2v8a2 2 0 01-2 2h-8a2 2 0 01-2-2v-8a2 2 0 012-2z" />
+                                                                </svg>
+                                                            </button>
+                                                        </div>
+                                                        <div class="delete-action"></div>
+                                                    `;
+
+                                                    // Добавляем обработчик клика для перехода на страницу ключа
+                                                    deviceElement.addEventListener('click', (e) => {
+                                                        if (e.target.closest('.copy-btn') || e.target.closest('.delete-action')) {
+                                                            return;
+                                                        }
+                                                        window.location.href = `/key/${key.id}`;
+                                                    });
+
+                                                    // Добавляем обработчик для кнопки копирования
+                                                    const copyBtn = deviceElement.querySelector('.copy-btn');
+                                                    if (copyBtn) {
+                                                        copyBtn.addEventListener('click', (e) => {
+                                                            e.stopPropagation();
+                                                            copyKey(key.key);
+                                                        });
+                                                    }
+
+                                                    // Добавляем обработчик для области удаления
+                                                    const deleteAction = deviceElement.querySelector('.delete-action');
+                                                    if (deleteAction) {
+                                                        deleteAction.addEventListener('click', (e) => {
+                                                            e.stopPropagation();
+                                                            e.preventDefault();
+                                                            showDeleteConfirmation(key.id);
+                                                        });
+                                                    }
+
+                                                    keysList.appendChild(deviceElement);
+                                                });
+                                            }
+                                        } else {
+                                            showNotification('Ошибка при создании конфигурации', 'error');
+                                        }
+                                    } catch (error) {
+                                        console.error('Error creating key:', error);
+                                        showNotification('Ошибка сети', 'error');
+                                    }
+                                };
+                            }
+                        });
+
+                        serversList.appendChild(serverElement);
+                    });
+                }
+
+                showModal(serverModal);
+            } catch (error) {
+                console.error('Error loading servers:', error);
+                showNotification('Ошибка загрузки серверов', 'error');
+            }
         });
     }
 
