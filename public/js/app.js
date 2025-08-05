@@ -8,8 +8,8 @@ if (tg) {
     tg.enableClosingConfirmation();
 
     // Установка основной кнопки
-    tg.MainButton.setText('Главная');
-    tg.MainButton.show();
+    // tg.MainButton.setText('Главная');
+    // tg.MainButton.show();
 }
 
 // Элементы DOM
