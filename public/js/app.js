@@ -5,21 +5,64 @@ let tg = window.Telegram.WebApp;
 if (tg) {
     tg.ready();
     // tg.expand(); // Убираем expand для fullscreen режима
-    
+
     // Предотвращение сворачивания приложения
     tg.enableClosingConfirmation();
-    
+
     // Дополнительные настройки для предотвращения сворачивания
     tg.setHeaderColor('#000000');
     tg.setBackgroundColor('#000000');
-    
+
     // Обработчик события попытки закрытия
-    tg.onEvent('viewportChanged', function() {
+    tg.onEvent('viewportChanged', function () {
         // Если пользователь пытается свернуть приложение, показываем предупреждение
         // if (tg.viewportHeight < window.innerHeight) {
         //     showNotification('Для закрытия приложения используйте кнопку "Назад"', 'info');
         // }
     });
+
+    // Добавляем тянучесть сверху
+    let startY = 0;
+    let currentY = 0;
+    let isDragging = false;
+
+    document.addEventListener('touchstart', function (e) {
+        if (window.scrollY === 0) {
+            startY = e.touches[0].clientY;
+            isDragging = true;
+        }
+    }, { passive: true });
+
+    document.addEventListener('touchmove', function (e) {
+        if (isDragging && window.scrollY === 0) {
+            currentY = e.touches[0].clientY;
+            const deltaY = currentY - startY;
+
+            if (deltaY > 0) {
+                // Пользователь тянет вниз сверху
+                e.preventDefault();
+
+                // Добавляем визуальный эффект тянучести
+                const pullDistance = Math.min(deltaY * 0.3, 100);
+                document.body.style.transform = `translateY(${pullDistance}px)`;
+                document.body.style.transition = 'none';
+            }
+        }
+    }, { passive: false });
+
+    document.addEventListener('touchend', function (e) {
+        if (isDragging) {
+            isDragging = false;
+
+            // Возвращаем контент на место с анимацией
+            document.body.style.transition = 'transform 0.3s ease';
+            document.body.style.transform = 'translateY(0)';
+
+            setTimeout(() => {
+                document.body.style.transition = '';
+            }, 300);
+        }
+    }, { passive: true });
 
     // Установка основной кнопки
     // tg.MainButton.setText('Главная');

@@ -676,6 +676,19 @@ body {
         overscroll-behavior: none;
         overflow-x: hidden;
     }
+
+    /* Добавляем тянучесть сверху */
+    body::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 100px;
+        background: linear-gradient(to bottom, rgba(0, 0, 0, 0.1), transparent);
+        pointer-events: none;
+        z-index: 9999;
+    }
 }
 
 /* Анимации */
