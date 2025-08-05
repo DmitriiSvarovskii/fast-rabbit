@@ -21,6 +21,7 @@ body {
     background-color: #000;
     padding-top: calc(36px + var(--tg-safe-area-inset-top, 0px));
 }
+
 /* 1 */
 .header .left {
     display: flex;
@@ -745,7 +746,16 @@ body {
 /* Стили для модалки с инструкциями */
 .instructions-modal-content {
     max-width: 600px;
-    max-height: calc(var(--tg-viewport-height, 100vh) - 40px);
+    height: calc(var(--tg-viewport-height, 100vh) - 40px);
+    margin: 0;
+    border-radius: 0;
+    padding: 0;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .instructions-intro {
@@ -763,11 +773,14 @@ body {
 }
 
 .key-display {
-    margin-bottom: 24px;
+    margin: 24px 16px;
     padding: 16px;
     background-color: rgba(255, 255, 255, 0.05);
     border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
 
 .key-text {
@@ -778,13 +791,53 @@ body {
     padding: 12px;
     border-radius: 8px;
     word-break: break-all;
-    margin-bottom: 12px;
     border: 1px solid rgba(82, 171, 176, 0.3);
 }
 
-.copy-key-btn {
-    width: 100%;
-    margin-top: 8px;
+.key-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: space-between;
+}
+
+.key-actions button {
+    flex: 1;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: transparent;
+    height: 40px;
+}
+
+.key-actions .copy-key-btn {
+    color: rgb(82, 171, 176);
+    border: 1px solid rgb(82, 171, 176);
+}
+
+.key-actions .copy-key-btn:hover {
+    background: rgba(82, 171, 176, 0.1);
+}
+
+.key-actions .delete-key-btn {
+    color: #dc3545;
+    border: 1px solid #dc3545;
+}
+
+.key-actions .delete-key-btn:hover {
+    background: rgba(220, 53, 69, 0.1);
+}
+
+.key-actions button svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
 }
 
 .platform-tabs {

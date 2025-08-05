@@ -182,12 +182,18 @@ closeCreateKeyModal.addEventListener('click', () => {
 
 closeInstructionsModal.addEventListener('click', () => {
     hideModal(instructionsModal);
+    if (tg && tg.BackButton) {
+        tg.BackButton.hide();
+    }
 });
 
 // Закрытие модалки инструкций по клику вне её
 instructionsModal.addEventListener('click', (e) => {
     if (e.target === instructionsModal) {
         hideModal(instructionsModal);
+        if (tg && tg.BackButton) {
+            tg.BackButton.hide();
+        }
     }
 });
 
@@ -475,7 +481,19 @@ function showKeyInstructions(key) {
     deleteBtn.onclick = () => {
         hideModal(instructionsModal); // Сначала скрыть модалку инструкций
         showDeleteConfirmation(key.id); // Затем показать подтверждение удаления
+        if (tg && tg.BackButton) {
+            tg.BackButton.hide();
+        }
     };
+
+    // Настраиваем кнопку "Назад" в Telegram Web App
+    if (tg && tg.BackButton) {
+        tg.BackButton.show();
+        tg.BackButton.onClick(() => {
+            hideModal(instructionsModal);
+            tg.BackButton.hide();
+        });
+    }
 
     // Показываем модалку
     openModalWithFullscreen(instructionsModal);

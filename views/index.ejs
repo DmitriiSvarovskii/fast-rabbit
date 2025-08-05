@@ -311,8 +311,27 @@
 
                 <div class="key-display">
                     <div class="key-text" id="keyText"></div>
-                    <button class="btn btn-primary copy-key-btn" onclick="copyKeyFromInstructions()">Копировать</button>
-                    <button class="btn btn-danger" id="deleteKeyFromModalBtn">Удалить</button>
+                    <div class="key-actions">
+                        <button class="delete-key-btn" id="deleteKeyFromModalBtn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M3 6h18"></path>
+                                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                            </svg>
+                            Удалить
+                        </button>
+                        <button class="copy-key-btn" onclick="copyKeyFromInstructions()">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                            Копировать
+                        </button>
+                    </div>
                 </div>
 
                 <div class="platform-tabs" id="platformTabs">
