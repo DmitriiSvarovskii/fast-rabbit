@@ -441,12 +441,9 @@ function updateKeysList(keys) {
             showKeyInstructions(key);
         });
 
-        // Добавляем обработчик для кнопки копирования
         const copyBtn = deviceElement.querySelector('.copy-btn');
         copyBtn.addEventListener('click', (e) => {
-            console.log('Клик по кнопке копирования');
             e.stopPropagation(); // Предотвращаем всплытие события
-            e.preventDefault(); // Предотвращаем стандартное поведение
             copyKey(key.key);
         });
 
