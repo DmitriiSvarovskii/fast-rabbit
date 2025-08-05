@@ -433,10 +433,10 @@ function updateKeysList(keys) {
                 return;
             }
 
-            // Проверяем, что элемент не находится в состоянии свайпа
-            if (currentSwipeElement && currentSwipeElement.classList.contains('swiped')) {
-                console.log('Элемент в состоянии свайпа - игнорируем клик');
-                return; // Не обрабатываем клик, если элемент свайпнут
+            // Проверяем, что не было движения (это был настоящий клик, а не свайп)
+            if (hasMoved) {
+                console.log('Было движение - игнорируем клик');
+                return;
             }
 
             console.log('Открываем инструкции для ключа:', key.key);
@@ -577,22 +577,26 @@ function initializeSwipe() {
 function handleTouchStart(e) {
     startX = e.touches[0].clientX;
     currentSwipeElement = e.currentTarget;
-    isSwiping = true;
     touchStartTime = Date.now(); // Запоминаем время начала касания
     hasMoved = false;
+    // НЕ устанавливаем isSwiping = true сразу
 }
 
 function handleTouchMove(e) {
-    if (!isSwiping) return;
+    if (!currentSwipeElement) return;
 
     currentX = e.touches[0].clientX;
     const diffX = currentX - startX;
 
-    if (Math.abs(diffX) > 5) {
-        hasMoved = true; // Отмечаем, что было движение
+    if (Math.abs(diffX) > 10) {
+        // Устанавливаем isSwiping только после минимального движения
+        if (!isSwiping) {
+            isSwiping = true;
+        }
+        hasMoved = true;
     }
 
-    if (diffX < 0) {
+    if (diffX < 0 && isSwiping) {
         e.preventDefault();
         const translateX = Math.max(diffX, -80);
         currentSwipeElement.style.transform = `translateX(${translateX}px)`;
@@ -600,12 +604,12 @@ function handleTouchMove(e) {
 }
 
 function handleTouchEnd(e) {
-    if (!isSwiping) return;
+    if (!currentSwipeElement) return;
 
     const diffX = currentX - startX;
 
-    if (diffX < -60) {
-        // Свайп влево достаточно для показа области удаления (увеличили порог)
+    if (diffX < -60 && isSwiping) {
+        // Свайп влево достаточно для показа области удаления
         currentSwipeElement.classList.add('swiped');
         currentSwipeElement.style.transform = 'translateX(-80px)';
 
@@ -619,42 +623,50 @@ function handleTouchEnd(e) {
 
     isSwiping = false;
     currentSwipeElement = null;
-    hasMoved = false;
     touchStartTime = 0;
+
+    // Сбрасываем флаг движения с небольшой задержкой
+    setTimeout(() => {
+        hasMoved = false;
+    }, 100);
 }
 
 // Mouse обработчики
 function handleMouseStart(e) {
     startX = e.clientX;
     currentSwipeElement = e.currentTarget;
-    isSwiping = true;
     touchStartTime = Date.now(); // Запоминаем время начала касания
     hasMoved = false;
+    // НЕ устанавливаем isSwiping = true сразу
 }
 
 function handleMouseMove(e) {
-    if (!isSwiping) return;
+    if (!currentSwipeElement) return;
 
     currentX = e.clientX;
     const diffX = currentX - startX;
 
-    if (Math.abs(diffX) > 5) {
-        hasMoved = true; // Отмечаем, что было движение
+    if (Math.abs(diffX) > 10) {
+        // Устанавливаем isSwiping только после минимального движения
+        if (!isSwiping) {
+            isSwiping = true;
+        }
+        hasMoved = true;
     }
 
-    if (diffX < 0) {
+    if (diffX < 0 && isSwiping) {
         const translateX = Math.max(diffX, -80);
         currentSwipeElement.style.transform = `translateX(${translateX}px)`;
     }
 }
 
 function handleMouseEnd(e) {
-    if (!isSwiping) return;
+    if (!currentSwipeElement) return;
 
     const diffX = currentX - startX;
 
-    if (diffX < -60) {
-        // Свайп влево достаточно для показа области удаления (увеличили порог)
+    if (diffX < -60 && isSwiping) {
+        // Свайп влево достаточно для показа области удаления
         currentSwipeElement.classList.add('swiped');
         currentSwipeElement.style.transform = 'translateX(-80px)';
 
@@ -667,8 +679,12 @@ function handleMouseEnd(e) {
 
     isSwiping = false;
     currentSwipeElement = null;
-    hasMoved = false;
     touchStartTime = 0;
+
+    // Сбрасываем флаг движения с небольшой задержкой
+    setTimeout(() => {
+        hasMoved = false;
+    }, 100);
 }
 
 // Функция показа подтверждения удаления
