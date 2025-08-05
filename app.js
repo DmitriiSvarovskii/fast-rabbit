@@ -4,7 +4,7 @@ const axios = require('axios');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const API_BASE_URL = process.env.API_BASE_URL || 'http:///127.0.0.1:8080';
+const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:8080';
 
 // Настройка EJS
 app.set('view engine', 'ejs');
@@ -18,7 +18,7 @@ app.use(express.urlencoded({ extended: true }));
 // Главная страница
 app.get('/', async (req, res) => {
   try {
-    // Получаем данные пользователя (используем ID 1 для демо)
+    // Получаем данные пользователя
     const userResponse = await axios.get(`${API_BASE_URL}/user/1`);
     const user = userResponse.data;
 
@@ -39,9 +39,9 @@ app.get('/', async (req, res) => {
       user: {
         id: 1,
         telegram_id: 123,
-        first_name: 'Дмитрий',
-        last_name: 'Сваровский',
-        username: 'swarovskidima',
+        first_name: '',
+        last_name: '',
+        username: '',
         balance: { balance: 100 },
         keys: [
           {
@@ -79,7 +79,7 @@ app.get('/', async (req, res) => {
 // Страница ключа
 app.get('/key/:id', async (req, res) => {
   try {
-    // Получаем данные пользователя (используем ID 1 для демо)
+    // Получаем данные пользователя
     const userResponse = await axios.get(`${API_BASE_URL}/user/1`);
     const user = userResponse.data;
 
@@ -209,5 +209,5 @@ app.post('/api/keys', async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Fast Rabbit VPN server running on port ${PORT}`);
   console.log(`API Base URL: ${API_BASE_URL}`);
-  console.log(`Open http:///127.0.0.1:${PORT} in your browser`);
-}); 
+  console.log(`Open http://localhost:${PORT} in your browser`);
+});

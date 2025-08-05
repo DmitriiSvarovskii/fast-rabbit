@@ -4,6 +4,46 @@ let tg = window.Telegram.WebApp;
 console.log('Telegram WebApp:', tg);
 let currentKey = null; // Для хранения текущего ключа
 
+// Получаем данные пользователя из Telegram
+const initUserData = () => {
+    if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+        console.log('Telegram user data:', tg.initDataUnsafe.user);
+        const user = tg.initDataUnsafe.user;
+        const userNameElement = document.querySelector('.header .right span');
+        if (userNameElement) {
+            // Формируем имя пользователя из доступных данных
+            let displayName = '';
+            if (user.first_name) displayName += user.first_name;
+            if (user.last_name) displayName += ' ' + user.last_name;
+            if (!displayName && user.username) displayName = user.username;
+            userNameElement.textContent = displayName;
+        }
+        return user.id; // Возвращаем ID пользователя
+    }
+    console.warn('No Telegram user data available');
+    return null;
+};
+
+// Инициализируем ID пользователя
+const userId = initUserData();
+
+// Функция получения флага страны
+function getCountryFlag(country) {
+    const flags = {
+        'Germany': '🇩🇪',
+        'Turkey': '🇹🇷',
+        'USA': '🇺🇸',
+        'Netherlands': '🇳🇱',
+        'France': '🇫🇷',
+        'UK': '🇬🇧',
+        'Japan': '🇯🇵',
+        'Singapore': '🇸🇬',
+        'Canada': '🇨🇦',
+        'Australia': '🇦🇺'
+    };
+    return flags[country] || '🌐';
+}
+
 // Инициализация всех обработчиков событий
 function initializeEventHandlers() {
     console.log('Initializing event handlers');
@@ -59,7 +99,7 @@ function initializeEventHandlers() {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        user_id: 1,
+                        user_id: userId || 1, // Используем ID из Telegram или 1 как fallback
                         amount: amount
                     })
                 });
@@ -178,7 +218,7 @@ function initializeEventHandlers() {
                                             }
 
                                             // Обновляем список ключей
-                                            const userResponse = await fetch('/api/user/1');
+                                            const userResponse = await fetch(`/api/user/${userId || 1}`);
                                             const userData = await userResponse.json();
 
                                             // Обновляем количество ключей
