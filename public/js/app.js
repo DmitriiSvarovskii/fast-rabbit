@@ -1,5 +1,6 @@
-// Инициализация Telegram Web App
+// Глобальные переменные
 let tg = window.Telegram.WebApp;
+let currentKey = null; // Для хранения текущего ключа
 
 // Настройка Telegram Web App
 if (tg) {
@@ -204,7 +205,7 @@ cancelBalanceBtn.addEventListener('click', () => {
 
 cancelDeleteBtn.addEventListener('click', () => {
     hideModal(deleteModal);
-    resetSwipeState();
+    showKeyInstructions(currentKey);
 });
 
 cancelCreateKeyBtn.addEventListener('click', () => {
@@ -465,6 +466,7 @@ function updateKeysList(keys) {
 
 // Функция для показа инструкций по ключу
 function showKeyInstructions(key) {
+    currentKey = key; // Сохраняем текущий ключ
     const instructionsModal = document.getElementById('instructionsModal');
     const keyTextElement = document.getElementById('keyText');
     const deleteBtn = document.getElementById('deleteKeyFromModalBtn');
