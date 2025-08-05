@@ -16,9 +16,9 @@ if (tg) {
     // Обработчик события попытки закрытия
     tg.onEvent('viewportChanged', function() {
         // Если пользователь пытается свернуть приложение, показываем предупреждение
-        if (tg.viewportHeight < window.innerHeight) {
-            showNotification('Для закрытия приложения используйте кнопку "Назад"', 'info');
-        }
+        // if (tg.viewportHeight < window.innerHeight) {
+        //     showNotification('Для закрытия приложения используйте кнопку "Назад"', 'info');
+        // }
     });
 
     // Установка основной кнопки
