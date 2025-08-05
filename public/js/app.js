@@ -5,7 +5,21 @@ let tg = window.Telegram.WebApp;
 if (tg) {
     tg.ready();
     // tg.expand(); // Убираем expand для fullscreen режима
+    
+    // Предотвращение сворачивания приложения
     tg.enableClosingConfirmation();
+    
+    // Дополнительные настройки для предотвращения сворачивания
+    tg.setHeaderColor('#000000');
+    tg.setBackgroundColor('#000000');
+    
+    // Обработчик события попытки закрытия
+    tg.onEvent('viewportChanged', function() {
+        // Если пользователь пытается свернуть приложение, показываем предупреждение
+        if (tg.viewportHeight < window.innerHeight) {
+            showNotification('Для закрытия приложения используйте кнопку "Назад"', 'info');
+        }
+    });
 
     // Установка основной кнопки
     // tg.MainButton.setText('Главная');

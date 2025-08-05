@@ -665,6 +665,16 @@ body {
     body {
         padding-top: env(safe-area-inset-top);
         padding-bottom: env(safe-area-inset-bottom);
+        /* Предотвращение свайпа вниз для закрытия */
+        overscroll-behavior: none;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Предотвращение свайпа вниз на всем контенте */
+    html,
+    body {
+        overscroll-behavior: none;
+        overflow-x: hidden;
     }
 }
 
