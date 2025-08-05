@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        <%= title %>
+    </title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+
+<body>
+    <header class="header">
+        <div class="left">
+            <div class="logo"></div>
+        </div>
+        <div class="right">
+            <span>
+                <%= user.first_name %>
+            </span>
+        </div>
+    </header>
+
+    <section class="balance-section">
+        <h4>Баланс</h4>
+        <div class="balance-amount" data-testid="balance-block-amount" id="balanceAmount">
+            <%= user.balance.balance %> ₽
+        </div>
+        <div class="balance-info">Хватит на ≈30 дней</div>
+        <button class="balance-button" id="addBalanceBtn">Пополнить баланс</button>
+        <div class="history-link" id="historyLink">История платежей</div>
+    </section>
+
+    <section class="section">
+        <div class="section-header">
+            <h4>Мои ключи</h4>
+            <div class="add-icon" id="addKeyBtn">+</div>
+        </div>
+        <div class="subtitle">Количество ключей: <%= user.keys.length %>
+        </div>
+        <div class="keys-list" id="keysList">
+            <% user.keys.forEach(function(key) { %>
+                <div class="device" data-id="<%= key.id %>" data-key-id="<%= key.id %>">
+                    <div class="device-icon"></div>
+                    <div class="device-info">
+                        <div class="device-title">
+                            <%= key.country %>
+                        </div>
+                        <div class="device-date">Добавлено <%= new Date(key.created_at).toLocaleDateString('ru-RU') %>
+                        </div>
+                    </div>
+                    <div class="device-actions">
+                        <button class="copy-btn" onclick="copyKey('<%= key.key %>')" title="Копировать">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m0 0h2a2 2 0 012 2v8a2 2 0 01-2 2h-8a2 2 0 01-2-2v-8a2 2 0 012-2z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="delete-action"></div>
+                </div>
+                <% }); %>
+        </div>
+    </section>
+
+
+
+    <!-- Объединенный блок с информацией -->
+    <section class="section info-block">
+        <div class="section-header">
+            <h4>Информация</h4>
+        </div>
+
+        <!-- Условия предоставления услуг -->
+        <div class="subsection collapsible-subsection">
+            <div class="subsection-header collapsible-header" onclick="toggleSubsection('services')">
+                <h5>Условия предоставления услуг</h5>
+                <div class="collapse-icon" id="services-icon">▼</div>
+            </div>
+            <div class="subsection-content collapsible-content" id="services-content">
+                <div class="info-list">
+                    <div class="info-list-item">
+                        <span class="info-label">Цены:</span>
+                        <span class="info-text">Стоимость услуг рассчитывается индивидуально в зависимости от выбранного
+                            тарифного плана и объема использования.</span>
+                    </div>
+                    <div class="info-list-item">
+                        <span class="info-label">Срок предоставления:</span>
+                        <span class="info-text">Услуги предоставляются в течение 24 часов после подтверждения оплаты. В
+                            случае технических работ срок может быть продлен до 48 часов.</span>
+                    </div>
+                    <div class="info-list-item">
+                        <span class="info-label">Порядок оплаты:</span>
+                        <span class="info-text">Оплата производится через безопасные платежные системы. Принимаются
+                            банковские карты и электронные платежи. Счет выставляется после оформления заказа.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Публичная оферта -->
+        <div class="subsection collapsible-subsection">
+            <div class="subsection-header collapsible-header" onclick="toggleSubsection('offer')">
+                <h5>Публичная оферта</h5>
+                <div class="collapse-icon" id="offer-icon">▼</div>
+            </div>
+            <div class="subsection-content collapsible-content" id="offer-content">
+                <div class="info-list">
+                    <div class="info-list-item">
+                        <span class="info-label">Порядок оформления заказа:</span>
+                        <span class="info-text">Заказ оформляется через веб-интерфейс приложения. Для оформления
+                            необходимо выбрать требуемые услуги и произвести оплату. Подтверждение заказа высылается на
+                            указанный email.</span>
+                    </div>
+                    <div class="info-list-item">
+                        <span class="info-label">Возврат товара:</span>
+                        <span class="info-text">В связи с цифровым характером предоставляемых услуг, возврат средств
+                            возможен в течение 14 дней с момента оплаты при условии, что услуги не были
+                            использованы.</span>
+                    </div>
+                    <div class="info-list-item">
+                        <span class="info-label">Разрешение претензий:</span>
+                        <span class="info-text">Все претензии принимаются в письменном виде на email:
+                            support@fast-rabbit.com. Срок рассмотрения претензий - до 10 рабочих дней с момента
+                            получения.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Информация о компании -->
+        <div class="subsection collapsible-subsection">
+            <div class="subsection-header collapsible-header" onclick="toggleSubsection('company')">
+                <h5>Информация о компании</h5>
+                <div class="collapse-icon" id="company-icon">▼</div>
+            </div>
+            <div class="subsection-content collapsible-content" id="company-content">
+                <div class="info-list">
+                    <div class="info-list-item contact-info">
+                        <span class="info-label">Полное наименование:</span>
+                        <span class="info-text">Индивидуальный предприниматель Сваровский Дмитрий Владимирович</span>
+                    </div>
+                    <div class="info-list-item legal-info">
+                        <span class="info-label">ИНН:</span>
+                        <span class="info-text">Указывается в договоре и счетах</span>
+                    </div>
+                    <div class="info-list-item legal-info">
+                        <span class="info-label">Юридический адрес:</span>
+                        <span class="info-text">Указывается в договоре и счетах</span>
+                    </div>
+                    <div class="info-list-item contact-info">
+                        <span class="info-label">Контактная информация:</span>
+                        <span class="info-text">Email: support@fast-rabbit.com</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Политика обработки персональных данных -->
+        <div class="subsection collapsible-subsection">
+            <div class="subsection-header collapsible-header" onclick="toggleSubsection('privacy')">
+                <h5>Политика обработки персональных данных</h5>
+                <div class="collapse-icon" id="privacy-icon">▼</div>
+            </div>
+            <div class="subsection-content collapsible-content" id="privacy-content">
+                <div class="info-list">
+                    <div class="info-list-item privacy-info">
+                        <span class="info-label">Сбор данных:</span>
+                        <span class="info-text">Мы собираем только необходимые для предоставления услуг данные: имя
+                            пользователя, email, данные для оплаты. Все данные обрабатываются в соответствии с
+                            законодательством РФ.</span>
+                    </div>
+                    <div class="info-list-item privacy-info">
+                        <span class="info-label">Использование данных:</span>
+                        <span class="info-text">Собранные данные используются исключительно для предоставления услуг,
+                            технической поддержки и улучшения качества сервиса.</span>
+                    </div>
+                    <div class="info-list-item privacy-info">
+                        <span class="info-label">Защита данных:</span>
+                        <span class="info-text">Все персональные данные защищены современными методами шифрования и
+                            хранятся на защищенных серверах.</span>
+                    </div>
+                    <div class="info-list-item privacy-info">
+                        <span class="info-label">Согласие на обработку:</span>
+                        <span class="info-text">Используя наш сервис, вы даете согласие на обработку персональных данных
+                            в соответствии с настоящей политикой. Вы можете отозвать согласие в любое время, обратившись
+                            к нам.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Кнопка помощи в самом низу -->
+    <div class="help-block" onclick="openTelegramSupport()">
+        <span>Помощь</span>
+        <div>&gt;</div>
+    </div>
+
+    <!-- Модальное окно для пополнения баланса -->
+    <div class="modal" id="balanceModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Пополнить баланс</h3>
+                <button class="modal-close" id="closeBalanceModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="balanceAmount">Сумма (₽)</label>
+                    <input type="number" id="balanceAmountInput" min="1" placeholder="Введите сумму">
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" id="cancelBalanceBtn">Отмена</button>
+                    <button class="btn btn-primary" id="confirmBalanceBtn">Пополнить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для истории платежей -->
+    <div class="modal" id="historyModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>История платежей</h3>
+                <button class="modal-close" id="closeHistoryModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="payments-list" id="paymentsList">
+                    <% payments.forEach(function(payment) { %>
+                        <div class="payment-item">
+                            <div class="payment-info">
+                                <div class="payment-amount">+<%= payment.amount %> ₽</div>
+                                <div class="payment-date">
+                                    <%= new Date(payment.created_at).toLocaleString('ru-RU') %>
+                                </div>
+                            </div>
+                        </div>
+                        <% }); %>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для подтверждения удаления -->
+    <div class="modal" id="deleteModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Подтверждение удаления</h3>
+                <button class="modal-close" id="closeDeleteModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Вы уверены, что хотите удалить эту конфигурацию?</p>
+                <p class="delete-key-info" id="deleteKeyInfo"></p>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" id="cancelDeleteBtn">Отмена</button>
+                    <button class="btn btn-danger" id="confirmDeleteBtn">Удалить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для выбора сервера -->
+    <div class="modal" id="serverModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Выберите сервер</h3>
+                <button class="modal-close" id="closeServerModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="servers-list" id="serversList">
+                    <!-- Серверы будут загружены динамически -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для подтверждения создания ключа -->
+    <div class="modal" id="createKeyModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Подтверждение создания</h3>
+                <button class="modal-close" id="closeCreateKeyModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Создать новую конфигурацию для сервера:</p>
+                <p class="server-info" id="serverInfo"></p>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" id="cancelCreateKeyBtn">Отмена</button>
+                    <button class="btn btn-primary" id="confirmCreateKeyBtn">Создать</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/app.js"></script>
+</body>
+
+</html>
