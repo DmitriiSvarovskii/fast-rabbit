@@ -588,7 +588,7 @@ body {
 /* Уведомления */
 .notification {
     position: fixed;
-    top: 20px;
+    top: calc(20px + var(--tg-safe-area-inset-top, 0px));
     right: 20px;
     padding: 12px 20px;
     border-radius: 8px;
