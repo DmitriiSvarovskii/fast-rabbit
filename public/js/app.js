@@ -425,6 +425,7 @@ function updateKeysList(keys) {
 
         // Добавляем обработчик клика на весь элемент для открытия инструкций
         deviceElement.addEventListener('click', (e) => {
+            e.stopPropagation(); // предотвращаем всплытие на модалку
             console.log('Клик по элементу ключа:', e.target);
             console.log('hasMoved:', hasMoved);
             console.log('isSwiping:', isSwiping);
@@ -948,3 +949,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 });
+
+if (instructionsModal) {
+    const modalContent = instructionsModal.querySelector('.modal-content');
+    if (modalContent) {
+        modalContent.addEventListener('click', e => e.stopPropagation());
+    }
+}
