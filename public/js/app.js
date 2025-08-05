@@ -425,19 +425,16 @@ function updateKeysList(keys) {
 
         // Добавляем обработчик клика на весь элемент для открытия инструкций
         deviceElement.addEventListener('click', (e) => {
-            e.stopPropagation(); // предотвращаем всплытие на модалку
-            console.log('Клик по элементу ключа:', e.target);
-            console.log('hasMoved:', hasMoved);
-            console.log('isSwiping:', isSwiping);
-
-            // Не открываем инструкции, если кликнули на кнопку копирования или область удаления
-            if (e.target.closest('.copy-btn') || e.target.closest('.delete-action')) {
-                console.log('Клик по кнопке копирования или области удаления - игнорируем');
+            // Не открываем инструкции, если было движение (свайп)
+            if (hasMoved) {
                 return;
             }
 
-            // Убираем все проверки - просто открываем инструкции при клике
-            console.log('Открываем инструкции для ключа:', key.key);
+            // Не открываем инструкции, если кликнули на кнопку копирования или область удаления
+            if (e.target.closest('.copy-btn') || e.target.closest('.delete-action')) {
+                return;
+            }
+
             showKeyInstructions(key);
         });
 
@@ -572,59 +569,54 @@ function initializeSwipe() {
 function handleTouchStart(e) {
     startX = e.touches[0].clientX;
     currentSwipeElement = e.currentTarget;
-    touchStartTime = Date.now(); // Запоминаем время начала касания
+    isSwiping = true; // Начинаем свайп сразу
+    touchStartTime = Date.now();
     hasMoved = false;
-    // НЕ устанавливаем isSwiping = true сразу
 }
 
 function handleTouchMove(e) {
-    if (!currentSwipeElement) return;
+    if (!currentSwipeElement || !isSwiping) return;
 
     currentX = e.touches[0].clientX;
     const diffX = currentX - startX;
 
-    if (Math.abs(diffX) > 10) {
-        // Устанавливаем isSwiping только после минимального движения
-        if (!isSwiping) {
-            isSwiping = true;
-        }
-        hasMoved = true;
-    }
-
-    if (diffX < 0 && isSwiping) {
-        e.preventDefault();
+    // Только перемещаем элемент, без preventDefault
+    if (diffX < 0) {
         const translateX = Math.max(diffX, -80);
         currentSwipeElement.style.transform = `translateX(${translateX}px)`;
     }
 }
 
 function handleTouchEnd(e) {
-    if (!currentSwipeElement) return;
+    if (!currentSwipeElement || !isSwiping) return;
 
     const diffX = currentX - startX;
+    hasMoved = Math.abs(diffX) > 10; // Определяем, было ли движение
 
-    if (diffX < -60 && isSwiping) {
-        // Свайп влево достаточно для показа области удаления
-        currentSwipeElement.classList.add('swiped');
-        currentSwipeElement.style.transform = 'translateX(-80px)';
-
-        // Показываем подтверждение удаления
-        const keyId = currentSwipeElement.getAttribute('data-key-id');
-        if (keyId) {
-            showDeleteConfirmation(keyId);
+    if (hasMoved) {
+        if (diffX < -60) {
+            // Свайп влево для удаления
+            currentSwipeElement.classList.add('swiped');
+            currentSwipeElement.style.transform = 'translateX(-80px)';
+            const keyId = currentSwipeElement.getAttribute('data-key-id');
+            if (keyId) {
+                showDeleteConfirmation(keyId);
+            }
+        } else {
+            // Возврат в исходное положение
+            currentSwipeElement.classList.remove('swiped');
+            currentSwipeElement.style.transform = 'translateX(0)';
         }
-    } else {
-        // Возвращаем в исходное положение
-        currentSwipeElement.classList.remove('swiped');
-        currentSwipeElement.style.transform = 'translateX(0)';
     }
 
+    // Сбрасываем состояние
     isSwiping = false;
-    currentSwipeElement = null;
-    touchStartTime = 0;
+    currentX = 0; // Сбрасываем currentX
+    startX = 0; // Сбрасываем startX
 
-    // Сбрасываем флаг движения с небольшой задержкой
+    // Не очищаем currentSwipeElement сразу, чтобы клик мог его использовать
     setTimeout(() => {
+        currentSwipeElement = null;
         hasMoved = false;
     }, 100);
 }
