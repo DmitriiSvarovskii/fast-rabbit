@@ -4,7 +4,28 @@ let tg = window.Telegram.WebApp;
 // Настройка Telegram Web App
 if (tg) {
     tg.ready();
-    // tg.expand(); // Убираем expand для fullscreen режима
+
+    // Отключаем вертикальные свайпы (если поддерживается)
+    if (typeof tg.disableVerticalSwipes === 'function') {
+        tg.disableVerticalSwipes();
+    }
+
+    // Всегда пытаемся перейти в fullscreen при открытии через меню
+    if (typeof tg.requestFullscreen === 'function') {
+        tg.requestFullscreen();
+    } else if (typeof tg.expand === 'function') {
+        tg.expand();
+    }
+
+    // Функция для открытия модалки с повторным fullscreen
+    function openModalWithFullscreen(modal) {
+        showModal(modal);
+        if (typeof tg.requestFullscreen === 'function') {
+            tg.requestFullscreen();
+        } else if (typeof tg.expand === 'function') {
+            tg.expand();
+        }
+    }
 
     // Предотвращение сворачивания приложения
     tg.enableClosingConfirmation();
@@ -119,18 +140,18 @@ function clearModalInputs() {
 
 // Обработчики событий для модальных окон
 addBalanceBtn.addEventListener('click', () => {
-    showModal(balanceModal);
+    openModalWithFullscreen(balanceModal);
     balanceAmountInput.focus();
 });
 
 historyLink.addEventListener('click', () => {
-    showModal(historyModal);
+    openModalWithFullscreen(historyModal);
 });
 
 // Обработчик для добавления ключа
 document.getElementById('addKeyBtn').addEventListener('click', () => {
     loadServers();
-    showModal(serverModal);
+    openModalWithFullscreen(serverModal);
 });
 
 // Закрытие модальных окон
