@@ -768,15 +768,38 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Добавляем обработчики для кнопок копирования
-    document.querySelectorAll('.copy-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            const keyValue = btn.getAttribute('data-key');
-            if (keyValue) {
-                copyKey(keyValue);
+    // Добавляем обработчики для кнопок копирования и открытия модального окна
+    document.querySelectorAll('.device').forEach(deviceElement => {
+        // Обработчик для открытия модального окна
+        deviceElement.addEventListener('click', (e) => {
+            if (e.target.closest('.copy-btn')) {
+                return;
+            }
+            const keyId = deviceElement.getAttribute('data-key-id');
+            const keyElement = deviceElement.querySelector('.copy-btn');
+            const keyValue = keyElement.getAttribute('onclick')?.match(/'([^']+)'/)?.[1] || keyElement.getAttribute('data-key');
+
+            if (keyId) {
+                showKeyInstructions({
+                    id: keyId,
+                    key: keyValue,
+                    country: deviceElement.querySelector('.device-title').textContent.trim()
+                });
             }
         });
+
+        // Обработчик для кнопки копирования
+        const copyBtn = deviceElement.querySelector('.copy-btn');
+        if (copyBtn) {
+            copyBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const keyValue = copyBtn.getAttribute('onclick')?.match(/'([^']+)'/)?.[1] || copyBtn.getAttribute('data-key');
+                if (keyValue) {
+                    copyKey(keyValue);
+                }
+            });
+        }
     });
 });
 
