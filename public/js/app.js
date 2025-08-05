@@ -425,16 +425,10 @@ function updateKeysList(keys) {
 
         // Добавляем обработчик клика на весь элемент для открытия инструкций
         deviceElement.addEventListener('click', (e) => {
-            // Не открываем инструкции, если было движение (свайп)
-            if (hasMoved) {
+            // Не открываем инструкции, если кликнули на кнопку копирования
+            if (e.target.closest('.copy-btn')) {
                 return;
             }
-
-            // Не открываем инструкции, если кликнули на кнопку копирования или область удаления
-            if (e.target.closest('.copy-btn') || e.target.closest('.delete-action')) {
-                return;
-            }
-
             showKeyInstructions(key);
         });
 
@@ -460,33 +454,30 @@ function updateKeysList(keys) {
         keysList.appendChild(deviceElement);
     });
 
-    // Переинициализируем свайп для новых элементов
-    initializeSwipe();
+
 }
 
 // Функция для показа инструкций по ключу
 function showKeyInstructions(key) {
-    console.log('Вызывается showKeyInstructions для ключа:', key.key);
-
     const instructionsModal = document.getElementById('instructionsModal');
     const keyTextElement = document.getElementById('keyText');
-    const platformTabs = document.getElementById('platformTabs');
+    const deleteBtn = document.getElementById('deleteKeyFromModalBtn');
 
-    if (!instructionsModal) {
-        console.error('Модалка инструкций не найдена!');
-        return;
-    }
-
-    if (!keyTextElement) {
-        console.error('Элемент для отображения ключа не найден!');
+    if (!instructionsModal || !keyTextElement || !deleteBtn) {
+        console.error('Необходимые элементы модального окна не найдены!');
         return;
     }
 
     // Устанавливаем текст ключа
     keyTextElement.textContent = key.key;
 
+    // Настраиваем кнопку удаления
+    deleteBtn.onclick = () => {
+        hideModal(instructionsModal); // Сначала скрыть модалку инструкций
+        showDeleteConfirmation(key.id); // Затем показать подтверждение удаления
+    };
+
     // Показываем модалку
-    console.log('Открываем модалку инструкций');
     openModalWithFullscreen(instructionsModal);
 }
 
@@ -520,165 +511,15 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // Инициализируем свайп при загрузке страницы
-    initializeSwipe();
+
 });
 
-// Функция для сброса состояния свайпа
+// Функция для сброса состояния свайпа (оставляем пустой для совместимости, если где-то вызывается)
 function resetSwipeState() {
-    // Сбрасываем состояние свайпа для всех элементов
-    document.querySelectorAll('.device.swiped').forEach(device => {
-        device.classList.remove('swiped');
-        device.style.transform = 'translateX(0)';
-    });
-
-    // Сбрасываем глобальные переменные свайпа
-    isSwiping = false;
-    currentSwipeElement = null;
-    hasMoved = false;
-    touchStartTime = 0;
+    // Больше ничего не делаем
 }
 
-// Переменные для свайпа
-let currentSwipeElement = null;
-let startX = 0;
-let currentX = 0;
-let isSwiping = false;
-let touchStartTime = 0;
-let hasMoved = false;
 
-// Инициализация свайпа
-function initializeSwipe() {
-    const devices = document.querySelectorAll('.device');
-
-    devices.forEach(device => {
-        // Touch события
-        device.addEventListener('touchstart', handleTouchStart);
-        device.addEventListener('touchmove', handleTouchMove);
-        device.addEventListener('touchend', handleTouchEnd);
-
-        // Mouse события для десктопа
-        device.addEventListener('mousedown', handleMouseStart);
-        device.addEventListener('mousemove', handleMouseMove);
-        device.addEventListener('mouseup', handleMouseEnd);
-        device.addEventListener('mouseleave', handleMouseEnd);
-    });
-}
-
-// Touch обработчики
-function handleTouchStart(e) {
-    startX = e.touches[0].clientX;
-    currentSwipeElement = e.currentTarget;
-    isSwiping = true; // Начинаем свайп сразу
-    touchStartTime = Date.now();
-    hasMoved = false;
-}
-
-function handleTouchMove(e) {
-    if (!currentSwipeElement || !isSwiping) return;
-
-    currentX = e.touches[0].clientX;
-    const diffX = currentX - startX;
-
-    // Только перемещаем элемент, без preventDefault
-    if (diffX < 0) {
-        const translateX = Math.max(diffX, -80);
-        currentSwipeElement.style.transform = `translateX(${translateX}px)`;
-    }
-}
-
-function handleTouchEnd(e) {
-    if (!currentSwipeElement || !isSwiping) return;
-
-    const diffX = currentX - startX;
-    hasMoved = Math.abs(diffX) > 10; // Определяем, было ли движение
-
-    if (hasMoved) {
-        if (diffX < -60) {
-            // Свайп влево для удаления
-            currentSwipeElement.classList.add('swiped');
-            currentSwipeElement.style.transform = 'translateX(-80px)';
-            const keyId = currentSwipeElement.getAttribute('data-key-id');
-            if (keyId) {
-                showDeleteConfirmation(keyId);
-            }
-        } else {
-            // Возврат в исходное положение
-            currentSwipeElement.classList.remove('swiped');
-            currentSwipeElement.style.transform = 'translateX(0)';
-        }
-    }
-
-    // Сбрасываем состояние
-    isSwiping = false;
-    currentX = 0; // Сбрасываем currentX
-    startX = 0; // Сбрасываем startX
-
-    // Не очищаем currentSwipeElement сразу, чтобы клик мог его использовать
-    setTimeout(() => {
-        currentSwipeElement = null;
-        hasMoved = false;
-    }, 100);
-}
-
-// Mouse обработчики
-function handleMouseStart(e) {
-    startX = e.clientX;
-    currentSwipeElement = e.currentTarget;
-    touchStartTime = Date.now(); // Запоминаем время начала касания
-    hasMoved = false;
-    // НЕ устанавливаем isSwiping = true сразу
-}
-
-function handleMouseMove(e) {
-    if (!currentSwipeElement) return;
-
-    currentX = e.clientX;
-    const diffX = currentX - startX;
-
-    if (Math.abs(diffX) > 10) {
-        // Устанавливаем isSwiping только после минимального движения
-        if (!isSwiping) {
-            isSwiping = true;
-        }
-        hasMoved = true;
-    }
-
-    if (diffX < 0 && isSwiping) {
-        const translateX = Math.max(diffX, -80);
-        currentSwipeElement.style.transform = `translateX(${translateX}px)`;
-    }
-}
-
-function handleMouseEnd(e) {
-    if (!currentSwipeElement) return;
-
-    const diffX = currentX - startX;
-
-    if (diffX < -60 && isSwiping) {
-        // Свайп влево достаточно для показа области удаления
-        currentSwipeElement.classList.add('swiped');
-        currentSwipeElement.style.transform = 'translateX(-80px)';
-
-        // Показываем подтверждение удаления
-        const keyId = currentSwipeElement.getAttribute('data-key-id');
-        if (keyId) {
-            showDeleteConfirmation(keyId);
-        }
-    } else {
-        currentSwipeElement.classList.remove('swiped');
-        currentSwipeElement.style.transform = 'translateX(0)';
-    }
-
-    isSwiping = false;
-    currentSwipeElement = null;
-    touchStartTime = 0;
-
-    // Сбрасываем флаг движения с небольшой задержкой
-    setTimeout(() => {
-        hasMoved = false;
-    }, 100);
-}
 
 // Функция показа подтверждения удаления
 function showDeleteConfirmation(keyId) {
