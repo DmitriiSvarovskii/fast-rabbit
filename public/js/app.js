@@ -169,6 +169,7 @@ closeHistoryModal.addEventListener('click', () => {
 
 closeDeleteModal.addEventListener('click', () => {
     hideModal(deleteModal);
+    resetSwipeState();
 });
 
 closeServerModal.addEventListener('click', () => {
@@ -197,6 +198,7 @@ cancelBalanceBtn.addEventListener('click', () => {
 
 cancelDeleteBtn.addEventListener('click', () => {
     hideModal(deleteModal);
+    resetSwipeState();
 });
 
 cancelCreateKeyBtn.addEventListener('click', () => {
@@ -220,6 +222,7 @@ historyModal.addEventListener('click', (e) => {
 deleteModal.addEventListener('click', (e) => {
     if (e.target === deleteModal) {
         hideModal(deleteModal);
+        resetSwipeState();
     }
 });
 
@@ -422,15 +425,14 @@ function updateKeysList(keys) {
 
         // Добавляем обработчик клика на весь элемент для открытия инструкций
         deviceElement.addEventListener('click', (e) => {
-            // Не открываем инструкции, если кликнули на кнопку копирования
+            // Не открываем инструкции, если кликнули на кнопку копирования или область удаления
             if (e.target.closest('.copy-btn') || e.target.closest('.delete-action')) {
                 return;
             }
 
-            // Проверяем, что это был настоящий клик, а не свайп
-            const touchDuration = Date.now() - touchStartTime;
-            if (hasMoved || touchDuration > 300) {
-                return; // Это был свайп или долгое касание, не обрабатываем как клик
+            // Проверяем, что элемент не находится в состоянии свайпа
+            if (currentSwipeElement && currentSwipeElement.classList.contains('swiped')) {
+                return; // Не обрабатываем клик, если элемент свайпнут
             }
 
             showKeyInstructions(key);
@@ -440,6 +442,7 @@ function updateKeysList(keys) {
         const copyBtn = deviceElement.querySelector('.copy-btn');
         copyBtn.addEventListener('click', (e) => {
             e.stopPropagation(); // Предотвращаем всплытие события
+            e.preventDefault(); // Предотвращаем стандартное поведение
             copyKey(key.key);
         });
 
@@ -496,6 +499,21 @@ document.addEventListener('DOMContentLoaded', function () {
     // Инициализируем свайп при загрузке страницы
     initializeSwipe();
 });
+
+// Функция для сброса состояния свайпа
+function resetSwipeState() {
+    // Сбрасываем состояние свайпа для всех элементов
+    document.querySelectorAll('.device.swiped').forEach(device => {
+        device.classList.remove('swiped');
+        device.style.transform = 'translateX(0)';
+    });
+
+    // Сбрасываем глобальные переменные свайпа
+    isSwiping = false;
+    currentSwipeElement = null;
+    hasMoved = false;
+    touchStartTime = 0;
+}
 
 // Переменные для свайпа
 let currentSwipeElement = null;
