@@ -426,6 +426,8 @@ function updateKeysList(keys) {
         // Добавляем обработчик клика на весь элемент для открытия инструкций
         deviceElement.addEventListener('click', (e) => {
             console.log('Клик по элементу ключа:', e.target);
+            console.log('hasMoved:', hasMoved);
+            console.log('isSwiping:', isSwiping);
 
             // Не открываем инструкции, если кликнули на кнопку копирования или область удаления
             if (e.target.closest('.copy-btn') || e.target.closest('.delete-action')) {
@@ -433,12 +435,7 @@ function updateKeysList(keys) {
                 return;
             }
 
-            // Проверяем, что не было движения (это был настоящий клик, а не свайп)
-            if (hasMoved) {
-                console.log('Было движение - игнорируем клик');
-                return;
-            }
-
+            // Убираем все проверки - просто открываем инструкции при клике
             console.log('Открываем инструкции для ключа:', key.key);
             showKeyInstructions(key);
         });
@@ -613,8 +610,11 @@ function handleTouchEnd(e) {
         currentSwipeElement.classList.add('swiped');
         currentSwipeElement.style.transform = 'translateX(-80px)';
 
-        // НЕ показываем подтверждение удаления автоматически
-        // Пользователь должен кликнуть на область удаления
+        // Показываем подтверждение удаления
+        const keyId = currentSwipeElement.getAttribute('data-key-id');
+        if (keyId) {
+            showDeleteConfirmation(keyId);
+        }
     } else {
         // Возвращаем в исходное положение
         currentSwipeElement.classList.remove('swiped');
@@ -670,8 +670,11 @@ function handleMouseEnd(e) {
         currentSwipeElement.classList.add('swiped');
         currentSwipeElement.style.transform = 'translateX(-80px)';
 
-        // НЕ показываем подтверждение удаления автоматически
-        // Пользователь должен кликнуть на область удаления
+        // Показываем подтверждение удаления
+        const keyId = currentSwipeElement.getAttribute('data-key-id');
+        if (keyId) {
+            showDeleteConfirmation(keyId);
+        }
     } else {
         currentSwipeElement.classList.remove('swiped');
         currentSwipeElement.style.transform = 'translateX(0)';
@@ -944,4 +947,4 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
-}); 
+});
