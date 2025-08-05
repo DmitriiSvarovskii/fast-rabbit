@@ -378,6 +378,7 @@ body {
 
 .modal.active.instructions-modal {
     align-items: stretch;
+    overscroll-behavior: none;
 }
 
 .modal-content {
@@ -758,6 +759,8 @@ body {
     display: flex;
     flex-direction: column;
     background: rgb(17, 25, 35);
+    position: relative;
+    overscroll-behavior: none;
 }
 
 .instructions-modal-content .modal-header {
@@ -774,6 +777,11 @@ body {
     -webkit-overflow-scrolling: touch;
     padding-bottom: 40px;
     background: rgb(17, 25, 35);
+    touch-action: pan-y pinch-zoom;
+    position: relative;
+    height: 100%;
+    max-height: calc(100vh - 60px);
+    /* 60px - примерная высота header */
 }
 
 .instructions-intro {
