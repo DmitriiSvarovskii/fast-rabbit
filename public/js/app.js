@@ -2,7 +2,7 @@
 console.log('Script loaded and running');
 let tg = window.Telegram.WebApp;
 
-const API_BASE = "https://api.fast-rabbit-vpn.swrsky.ru"; // твой бэкенд FastAPI
+const API_BASE = "http://127.0.0.1:8080"; // твой бэкенд FastAPI
 
 function getInitData() {
     return window.Telegram?.WebApp?.initData || "";
@@ -708,7 +708,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Инициализируем обработчики событий
     initializeEventHandlers();
-    
+
     refreshBalanceUI().catch(() => { });
 
     // Показываем приветственное уведомление
