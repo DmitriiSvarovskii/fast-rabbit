@@ -1,6 +1,44 @@
 // Глобальные переменные
 console.log('Script loaded and running');
 let tg = window.Telegram.WebApp;
+
+const API_BASE = "https://api.fast-rabbit-vpn.swrsky.ru"; // твой бэкенд FastAPI
+
+function getInitData() {
+    return window.Telegram?.WebApp?.initData || "";
+}
+
+async function refreshBalanceUI() {
+    try {
+        const r = await fetch(`${API_BASE}/me/balance`, {
+            headers: { "X-Telegram-Init-Data": getInitData() }
+        });
+        if (!r.ok) return;
+        const { balance_rub } = await r.json();
+        const balanceAmountEl = document.getElementById("balanceAmount");
+        if (balanceAmountEl && typeof balance_rub !== "undefined") {
+            balanceAmountEl.textContent = `${balance_rub} ₽`;
+        }
+    } catch (_) { }
+}
+
+async function createStarsInvoice(amountRub) {
+    const resp = await fetch(`${API_BASE}/payments/stars/invoice`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-Telegram-Init-Data": getInitData()
+        },
+        body: JSON.stringify({ amount_rub: amountRub })
+    });
+    if (!resp.ok) {
+        const t = await resp.text().catch(() => "");
+        throw new Error(t || "Не удалось создать счёт");
+    }
+    // { invoice_link, stars, payload }
+    return resp.json();
+}
+
 console.log('Telegram WebApp:', tg);
 let currentKey = null; // Для хранения текущего ключа
 
@@ -81,55 +119,65 @@ function initializeEventHandlers() {
 
     // Обработчик для кнопки подтверждения пополнения баланса
     if (confirmBalanceBtn) {
-        confirmBalanceBtn.addEventListener('click', async () => {
-            console.log('Confirm balance button clicked');
-            const amount = parseInt(balanceAmountInput.value);
-            console.log('Amount:', amount);
+        // на всякий случай сбросим старые слушатели
+        const fresh = confirmBalanceBtn.cloneNode(true);
+        confirmBalanceBtn.parentNode.replaceChild(fresh, confirmBalanceBtn);
 
+        fresh.addEventListener("click", async () => {
+            console.log("Stars: confirm balance clicked");
+            const amount = parseInt(balanceAmountInput.value);
             if (!amount || amount <= 0) {
-                showNotification('Введите корректную сумму', 'error');
+                showNotification("Введите корректную сумму", "error");
                 return;
             }
 
             try {
-                console.log('Sending payment request...');
-                const response = await fetch('/api/payment', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        user_id: userId || 1, // Используем ID из Telegram или 1 как fallback
-                        amount: amount
-                    })
+                // создаём ссылку-инвойс в звёздах на бэке
+                const { invoice_link, stars, payload } = await createStarsInvoice(amount);
+                console.log("Stars: invoice link =", invoice_link);
+
+                // открываем телеграмовское окно оплаты
+                if (!tg || !tg.openInvoice) {
+                    showNotification("Откройте приложение внутри Telegram", "error");
+                    return;
+                }
+
+                fresh.disabled = true;
+                const oldText = fresh.textContent;
+                fresh.textContent = "Ожидание оплаты...";
+
+                tg.openInvoice(invoice_link, async (status) => {
+                    console.log("Stars: invoice status =", status); // 'paid' | 'cancelled' | 'failed'
+                    if (status === "paid") {
+                        // (необязательно) спросить статус на бэке
+                        try {
+                            await fetch(`${API_BASE}/payments/stars/status?payload=${encodeURIComponent(payload)}`, {
+                                headers: { "X-Telegram-Init-Data": getInitData() }
+                            });
+                        } catch (_) { }
+
+                        await refreshBalanceUI();
+                        hideModal(balanceModal);
+                        clearModalInputs();
+                        showNotification(`Баланс пополнен (~${stars} ⭐)`, "success");
+
+                        // Haptic
+                        if (tg && tg.HapticFeedback) {
+                            try { tg.HapticFeedback.impactOccurred("medium"); } catch { }
+                        }
+                    } else if (status === "cancelled") {
+                        showNotification("Оплата отменена", "info");
+                    } else {
+                        showNotification("Оплата не прошла", "error");
+                    }
+
+                    fresh.disabled = false;
+                    fresh.textContent = oldText;
                 });
 
-                console.log('Payment response:', response);
-                const data = await response.json();
-                console.log('Payment data:', data);
-
-                if (data.success) {
-                    if (balanceAmount) {
-                        balanceAmount.textContent = `${data.balance} ₽`;
-                    }
-                    hideModal(balanceModal);
-                    clearModalInputs();
-                    showNotification(`Баланс пополнен на ${amount}₽`, 'success');
-
-                    // Haptic feedback для Telegram
-                    if (tg && tg.HapticFeedback) {
-                        try {
-                            tg.HapticFeedback.impactOccurred('medium');
-                        } catch (e) {
-                            console.warn('Failed to trigger haptic feedback:', e);
-                        }
-                    }
-                } else {
-                    showNotification(data.message || 'Ошибка при пополнении баланса', 'error');
-                }
             } catch (error) {
-                console.error('Payment error:', error);
-                showNotification('Ошибка сети', 'error');
+                console.error("Stars payment error:", error);
+                showNotification(error.message || "Ошибка при создании счёта", "error");
             }
         });
     }
@@ -660,6 +708,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Инициализируем обработчики событий
     initializeEventHandlers();
+    
+    refreshBalanceUI().catch(() => { });
 
     // Показываем приветственное уведомление
     setTimeout(() => {
