@@ -318,7 +318,107 @@
         </div>
     </div>
 
-    <script src="/js/app.js"></script>
+    <script src="/js/app.js">
+        // /public/js/app.js (или твой путь)
+        (function () {
+            const API_BASE = 'https://api.fast-rabbit-vpn.swrsky.ru';
+
+            const balanceModal = document.getElementById('balanceModal');
+            const addBalanceBtn = document.getElementById('addBalanceBtn');
+            const closeModalBtn = document.getElementById('closeBalanceModal');
+            const cancelBtn = document.getElementById('cancelBalanceBtn');
+            const confirmBtn = document.getElementById('confirmBalanceBtn');
+            const amountInput = document.getElementById('balanceAmountInput');
+            const balanceAmount = document.getElementById('balanceAmount');
+
+            function openModal() { balanceModal.style.display = 'block'; }
+            function closeModal() { balanceModal.style.display = 'none'; }
+
+            addBalanceBtn?.addEventListener('click', () => {
+                amountInput.value = '';
+                openModal();
+            });
+            closeModalBtn?.addEventListener('click', closeModal);
+            cancelBtn?.addEventListener('click', closeModal);
+
+            function getInitData() {
+                return window.Telegram?.WebApp?.initData || '';
+            }
+
+            async function refreshBalance() {
+                try {
+                    const r = await fetch(`${API_BASE}/me/balance`, {
+                        headers: { 'X-Telegram-Init-Data': getInitData() }
+                    });
+                    if (!r.ok) return;
+                    const { balance_rub } = await r.json();
+                    if (balanceAmount) balanceAmount.textContent = `${balance_rub} ₽`;
+                } catch (e) { /* noop */ }
+            }
+
+            async function createStarsInvoice(amountRub) {
+                const resp = await fetch(`${API_BASE}/payments/stars/invoice`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Telegram-Init-Data': getInitData()
+                    },
+                    body: JSON.stringify({ amount_rub: amountRub })
+                });
+                if (!resp.ok) {
+                    const text = await resp.text();
+                    throw new Error(text || 'Не удалось создать счёт');
+                }
+                return resp.json(); // { invoice_link, stars, payload }
+            }
+
+            confirmBtn?.addEventListener('click', async () => {
+                const rub = Number(amountInput.value);
+                if (!rub || rub <= 0) {
+                    alert('Укажи сумму в ₽ больше нуля');
+                    return;
+                }
+
+                confirmBtn.disabled = true;
+                const oldText = confirmBtn.textContent;
+                confirmBtn.textContent = 'Создаём счёт...';
+
+                try {
+                    const { invoice_link, stars, payload } = await createStarsInvoice(rub);
+
+                    // Открыть нативное окно оплаты звёздами
+                    window.Telegram.WebApp.openInvoice(invoice_link, async (status) => {
+                        // status: 'paid' | 'cancelled' | 'failed'
+                        if (status === 'paid') {
+                            // опционально подтверждаем у бэка
+                            try {
+                                await fetch(`${API_BASE}/payments/stars/status?payload=${encodeURIComponent(payload)}`, {
+                                    headers: { 'X-Telegram-Init-Data': getInitData() }
+                                });
+                            } catch (e) { }
+                            await refreshBalance();
+                            closeModal();
+                            alert(`Оплата успешна. Начислено ~${stars} ⭐️`);
+                        } else if (status === 'cancelled') {
+                            console.log('Оплата отменена');
+                        } else {
+                            alert('Оплата не прошла');
+                        }
+                    });
+
+                    // Дополнительно можно слушать глобально:
+                    // window.Telegram.WebApp.onEvent('invoiceClosed', ({status}) => { ... });
+
+                } catch (e) {
+                    console.error(e);
+                    alert(e.message || 'Ошибка при создании счёта');
+                } finally {
+                    confirmBtn.disabled = false;
+                    confirmBtn.textContent = oldText;
+                }
+            });
+        })();
+    </script>
 </body>
 
 </html>
