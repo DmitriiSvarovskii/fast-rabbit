@@ -1,532 +1,57 @@
-console.log('Script loaded and running');
+console.log('Fast Rabbit VPN App - Modular Version');
 
-// === API и Telegram init ===
-const API_BASE = window.API_BASE_URL || 'https://api.fast-rabbit-vpn.swrsky.ru';
-// const API_BASE = window.API_BASE_URL || 'http://localhost:8000';
-const tg = window.Telegram?.WebApp;
+// Инициализация всех модулей
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log('DOM loaded - initializing modules');
 
-function getTelegramId() {
-    try { return tg?.initDataUnsafe?.user?.id || null; } catch (_) { return null; }
-}
-function getInitDataHeader() {
-    return tg?.initData || '';
-}
-
-// Подтягиваем пользователя и рендерим
-async function loadUserAndRender() {
-    const telegramId = getTelegramId();
-    if (!telegramId) {
-        console.warn('Нет Telegram ID (WebApp не в Telegram?)');
-        return;
+    // Инициализация Telegram модуля
+    if (window.TelegramModule) {
+        window.TelegramModule.init();
     }
 
-    try {
-        const resp = await fetch(`${API_BASE}/user/${telegramId}`);
-        if (!resp.ok) throw new Error(`API /user/${telegramId} -> ${resp.status}`);
-        const user = await resp.json();
+    // Инициализация API модуля
+    if (window.ApiModule) {
+        window.ApiModule.init();
+    }
 
-        // Имя
-        const nameEl = document.getElementById('userName');
-        if (nameEl) nameEl.textContent = user.username || user.first_name || ('ID ' + user.telegram_id);
+    // Инициализация UI модуля
+    if (window.UIModule) {
+        window.UIModule.init();
+    }
 
-        // Баланс
-        const balEl = document.getElementById('balanceAmount');
-        if (balEl) balEl.textContent = `${user.balance?.balance ?? 0} ₽`;
+    // Инициализация Payment модуля
+    if (window.PaymentModule) {
+        window.PaymentModule.init();
+    }
 
-        // Ключи
-        const countEl = document.getElementById('keysCount');
-        const listEl = document.getElementById('keysList');
-        const keys = Array.isArray(user.keys) ? user.keys : [];
-        if (countEl) countEl.textContent = `Количество ключей: ${keys.length}`;
-        if (listEl) {
-            listEl.innerHTML = '';
-            for (const k of keys) {
-                const div = document.createElement('div');
-                div.className = 'device';
-                div.setAttribute('data-key-id', k.id);
-                const dateStr = k.created_at ? new Date(k.created_at).toLocaleDateString('ru-RU') : '';
-                div.innerHTML = `
-          <div class="device-icon"></div>
-          <div class="device-info">
-            <div class="device-title">${k.country ?? ''}</div>
-            <div class="device-date">Добавлено ${dateStr}</div>
-          </div>
-          <div class="device-actions">
-            <button class="copy-btn" title="Копировать">📋</button>
-          </div>
-          <div class="delete-action"></div>
-        `;
-                div.addEventListener('click', (e) => {
-                    if (e.target.closest('.copy-btn') || e.target.closest('.delete-action')) return;
-                    window.location.href = `/key/${k.id}`;
-                });
-                div.querySelector('.copy-btn')?.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    if (k.key) navigator.clipboard.writeText(k.key);
-                });
-                listEl.appendChild(div);
-            }
+    // Загрузка данных пользователя
+    if (window.ApiModule) {
+        await window.ApiModule.loadUserAndRender();
+    }
+
+    // Обновление баланса
+    if (window.ApiModule) {
+        await window.ApiModule.refreshBalanceUI();
+    }
+
+    // Показываем приветственное уведомление
+    setTimeout(() => {
+        if (window.UIModule) {
+            window.UIModule.showNotification('Добро пожаловать в Fast Rabbit!', 'info');
         }
-    } catch (e) {
-        console.error('Ошибка загрузки пользователя:', e);
-    }
-}
+    }, 1000);
 
-document.addEventListener('DOMContentLoaded', () => {
-    loadUserAndRender();
-});
-
-async function refreshBalanceUI() {
-    try {
-        const r = await fetch(`${API_BASE}/me/balance`, {
-            headers: { "X-Telegram-Init-Data": getInitData() }
-        });
-        if (!r.ok) return;
-        const { balance_rub } = await r.json();
-        const balanceAmountEl = document.getElementById("balanceAmount");
-        if (balanceAmountEl && typeof balance_rub !== "undefined") {
-            balanceAmountEl.textContent = `${balance_rub} ₽`;
+    // Настройка Telegram Web App после загрузки
+    if (window.TelegramModule) {
+        try {
+            // Устанавливаем цветовую схему
+            if (window.TelegramModule.tg) {
+                window.TelegramModule.tg.setHeaderColor('#000000');
+                window.TelegramModule.tg.setBackgroundColor('#000000');
+            }
+        } catch (e) {
+            console.warn('Failed to set colors:', e);
         }
-    } catch (_) { }
-}
-
-async function createStarsInvoice(amountRub) {
-    const resp = await fetch(`${API_BASE}/payments/stars/invoice`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-Telegram-Init-Data": getInitData()
-        },
-        body: JSON.stringify({ amount_rub: amountRub })
-    });
-    if (!resp.ok) {
-        const t = await resp.text().catch(() => "");
-        throw new Error(t || "Не удалось создать счёт");
-    }
-    // { invoice_link, stars, payload }
-    return resp.json();
-}
-
-console.log('Telegram WebApp:', tg);
-let currentKey = null; // Для хранения текущего ключа
-
-// Получаем данные пользователя из Telegram
-const initUserData = () => {
-    if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
-        console.log('Telegram user data:', tg.initDataUnsafe.user);
-        const user = tg.initDataUnsafe.user;
-        const userNameElement = document.querySelector('.header .right span');
-        if (userNameElement) {
-            // Формируем имя пользователя из доступных данных
-            let displayName = '';
-            if (user.first_name) displayName += user.first_name;
-            if (user.last_name) displayName += ' ' + user.last_name;
-            if (!displayName && user.username) displayName = user.username;
-            userNameElement.textContent = displayName;
-        }
-        return user.id; // Возвращаем ID пользователя
-    }
-    console.warn('No Telegram user data available');
-    return null;
-};
-
-// Инициализируем ID пользователя
-const userId = initUserData();
-
-// Функция получения флага страны
-function getCountryFlag(country) {
-    const flags = {
-        'Germany': '🇩🇪',
-        'Turkey': '🇹🇷',
-        'USA': '🇺🇸',
-        'Netherlands': '🇳🇱',
-        'France': '🇫🇷',
-        'UK': '🇬🇧',
-        'Japan': '🇯🇵',
-        'Singapore': '🇸🇬',
-        'Canada': '🇨🇦',
-        'Australia': '🇦🇺'
-    };
-    return flags[country] || '🌐';
-}
-
-// Инициализация всех обработчиков событий
-function initializeEventHandlers() {
-    console.log('Initializing event handlers');
-
-    // Обработчики для ключей
-    document.querySelectorAll('.device').forEach(deviceElement => {
-        console.log('Adding click handler to device:', deviceElement);
-
-        deviceElement.addEventListener('click', (e) => {
-            console.log('Device clicked:', e.target);
-
-            if (e.target.closest('.copy-btn') || e.target.closest('.delete-action')) {
-                console.log('Click on copy or delete button - ignoring');
-                return;
-            }
-
-            const keyId = deviceElement.getAttribute('data-key-id');
-            console.log('Key ID:', keyId);
-
-            if (keyId) {
-                console.log('Navigating to:', `/key/${keyId}`);
-                window.location.href = `/key/${keyId}`;
-            }
-        });
-    });
-
-    // Обработчики для модальных окон
-    if (addBalanceBtn) {
-        addBalanceBtn.addEventListener('click', () => {
-            console.log('Balance button clicked');
-            showModal(balanceModal);
-            balanceAmountInput.focus();
-        });
-    }
-
-    // Обработчик для кнопки подтверждения пополнения баланса
-    if (confirmBalanceBtn) {
-        // на всякий случай сбросим старые слушатели
-        const fresh = confirmBalanceBtn.cloneNode(true);
-        confirmBalanceBtn.parentNode.replaceChild(fresh, confirmBalanceBtn);
-
-        fresh.addEventListener("click", async () => {
-            console.log("Stars: confirm balance clicked");
-            const amount = parseInt(balanceAmountInput.value);
-            if (!amount || amount <= 0) {
-                showNotification("Введите корректную сумму", "error");
-                return;
-            }
-
-            try {
-                // создаём ссылку-инвойс в звёздах на бэке
-                const { invoice_link, stars, payload } = await createStarsInvoice(amount);
-                console.log("Stars: invoice link =", invoice_link);
-
-                // открываем телеграмовское окно оплаты
-                if (!tg || !tg.openInvoice) {
-                    showNotification("Откройте приложение внутри Telegram", "error");
-                    return;
-                }
-
-                fresh.disabled = true;
-                const oldText = fresh.textContent;
-                fresh.textContent = "Ожидание оплаты...";
-
-                tg.openInvoice(invoice_link, async (status) => {
-                    console.log("Stars: invoice status =", status); // 'paid' | 'cancelled' | 'failed'
-                    if (status === "paid") {
-                        // (необязательно) спросить статус на бэке
-                        try {
-                            await fetch(`${API_BASE}/payments/stars/status?payload=${encodeURIComponent(payload)}`, {
-                                headers: { "X-Telegram-Init-Data": getInitData() }
-                            });
-                        } catch (_) { }
-
-                        await refreshBalanceUI();
-                        hideModal(balanceModal);
-                        clearModalInputs();
-                        showNotification(`Баланс пополнен (~${stars} ⭐)`, "success");
-
-                        // Haptic
-                        if (tg && tg.HapticFeedback) {
-                            try { tg.HapticFeedback.impactOccurred("medium"); } catch { }
-                        }
-                    } else if (status === "cancelled") {
-                        showNotification("Оплата отменена", "info");
-                    } else {
-                        showNotification("Оплата не прошла", "error");
-                    }
-
-                    fresh.disabled = false;
-                    fresh.textContent = oldText;
-                });
-
-            } catch (error) {
-                console.error("Stars payment error:", error);
-                showNotification(error.message || "Ошибка при создании счёта", "error");
-            }
-        });
-    }
-
-    if (historyLink) {
-        historyLink.addEventListener('click', () => {
-            console.log('History link clicked');
-            showModal(historyModal);
-        });
-    }
-
-    // Обработчик для добавления ключа
-    const addKeyBtn = document.getElementById('addKeyBtn');
-    if (addKeyBtn) {
-        addKeyBtn.addEventListener('click', async () => {
-            console.log('Add key button clicked');
-            try {
-                console.log('Loading servers...');
-                const response = await fetch('/api/servers');
-                console.log('Servers response:', response);
-                const servers = await response.json();
-                console.log('Servers data:', servers);
-
-                const serversList = document.getElementById('serversList');
-                if (serversList) {
-                    serversList.innerHTML = '';
-
-                    servers.forEach(server => {
-                        console.log('Creating server element:', server);
-                        const serverElement = document.createElement('div');
-                        serverElement.className = 'server-item';
-                        serverElement.setAttribute('data-server-id', server.id);
-                        serverElement.setAttribute('data-server-country', server.country);
-
-                        const flag = getCountryFlag(server.country);
-
-                        serverElement.innerHTML = `
-                            <div class="server-icon">${flag}</div>
-                            <div class="server-info">
-                                <div class="server-name">${server.country}</div>
-                                <div class="server-description">Нажмите для создания конфигурации</div>
-                            </div>
-                        `;
-
-                        serverElement.addEventListener('click', () => {
-                            console.log('Server selected:', server);
-                            const serverInfo = document.getElementById('serverInfo');
-                            if (serverInfo) {
-                                serverInfo.innerHTML = `${flag} ${server.country}`;
-                            }
-
-                            hideModal(serverModal);
-                            showModal(createKeyModal);
-
-                            // Настраиваем кнопку создания ключа
-                            const confirmCreateKeyBtn = document.getElementById('confirmCreateKeyBtn');
-                            if (confirmCreateKeyBtn) {
-                                confirmCreateKeyBtn.onclick = async () => {
-                                    console.log('Creating key for server:', server);
-                                    try {
-                                        const response = await fetch('/api/keys', {
-                                            method: 'POST',
-                                            headers: {
-                                                'Content-Type': 'application/json',
-                                            },
-                                            body: JSON.stringify({
-                                                server_id: server.id
-                                            })
-                                        });
-
-                                        console.log('Create key response:', response);
-                                        const data = await response.json();
-                                        console.log('Create key data:', data);
-
-                                        if (data.id) {
-                                            hideModal(createKeyModal);
-                                            showNotification('Конфигурация создана успешно!', 'success');
-
-                                            // Haptic feedback для Telegram
-                                            if (tg && tg.HapticFeedback) {
-                                                try {
-                                                    tg.HapticFeedback.impactOccurred('medium');
-                                                } catch (e) {
-                                                    console.warn('Failed to trigger haptic feedback:', e);
-                                                }
-                                            }
-
-                                            // Обновляем список ключей
-                                            const userResponse = await fetch(`/api/user/${userId || 1}`);
-                                            const userData = await userResponse.json();
-
-                                            // Обновляем количество ключей
-                                            const subtitle = document.querySelector('.subtitle');
-                                            if (subtitle) {
-                                                subtitle.textContent = `Количество ключей: ${userData.keys.length}`;
-                                            }
-
-                                            // Обновляем список ключей
-                                            const keysList = document.getElementById('keysList');
-                                            if (keysList && userData.keys) {
-                                                keysList.innerHTML = '';
-                                                userData.keys.forEach((key) => {
-                                                    const deviceElement = document.createElement('div');
-                                                    deviceElement.className = 'device';
-                                                    deviceElement.setAttribute('data-id', key.id);
-                                                    deviceElement.setAttribute('data-key-id', key.id);
-
-                                                    const createdDate = new Date(key.created_at).toLocaleDateString('ru-RU');
-
-                                                    deviceElement.innerHTML = `
-                                                        <div class="device-icon"></div>
-                                                        <div class="device-info">
-                                                            <div class="device-title">${key.country}</div>
-                                                            <div class="device-date">Добавлено ${createdDate}</div>
-                                                        </div>
-                                                        <div class="device-actions">
-                                                            <button class="copy-btn" data-key="${key.key}" title="Копировать">
-                                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m0 0h2a2 2 0 012 2v8a2 2 0 01-2 2h-8a2 2 0 01-2-2v-8a2 2 0 012-2z" />
-                                                                </svg>
-                                                            </button>
-                                                        </div>
-                                                        <div class="delete-action"></div>
-                                                    `;
-
-                                                    // Добавляем обработчик клика для перехода на страницу ключа
-                                                    deviceElement.addEventListener('click', (e) => {
-                                                        if (e.target.closest('.copy-btn') || e.target.closest('.delete-action')) {
-                                                            return;
-                                                        }
-                                                        window.location.href = `/key/${key.id}`;
-                                                    });
-
-                                                    // Добавляем обработчик для кнопки копирования
-                                                    const copyBtn = deviceElement.querySelector('.copy-btn');
-                                                    if (copyBtn) {
-                                                        copyBtn.addEventListener('click', (e) => {
-                                                            e.stopPropagation();
-                                                            copyKey(key.key);
-                                                        });
-                                                    }
-
-                                                    // Добавляем обработчик для области удаления
-                                                    const deleteAction = deviceElement.querySelector('.delete-action');
-                                                    if (deleteAction) {
-                                                        deleteAction.addEventListener('click', (e) => {
-                                                            e.stopPropagation();
-                                                            e.preventDefault();
-                                                            showDeleteConfirmation(key.id);
-                                                        });
-                                                    }
-
-                                                    keysList.appendChild(deviceElement);
-                                                });
-                                            }
-                                        } else {
-                                            showNotification('Ошибка при создании конфигурации', 'error');
-                                        }
-                                    } catch (error) {
-                                        console.error('Error creating key:', error);
-                                        showNotification('Ошибка сети', 'error');
-                                    }
-                                };
-                            }
-                        });
-
-                        serversList.appendChild(serverElement);
-                    });
-                }
-
-                showModal(serverModal);
-            } catch (error) {
-                console.error('Error loading servers:', error);
-                showNotification('Ошибка загрузки серверов', 'error');
-            }
-        });
-    }
-
-    // Закрытие модальных окон
-    if (closeBalanceModal) {
-        closeBalanceModal.addEventListener('click', () => {
-            hideModal(balanceModal);
-            clearModalInputs();
-        });
-    }
-
-    if (closeHistoryModal) {
-        closeHistoryModal.addEventListener('click', () => {
-            hideModal(historyModal);
-        });
-    }
-
-    if (closeDeleteModal) {
-        closeDeleteModal.addEventListener('click', () => {
-            hideModal(deleteModal);
-            resetSwipeState();
-        });
-    }
-
-    if (closeServerModal) {
-        closeServerModal.addEventListener('click', () => {
-            hideModal(serverModal);
-        });
-    }
-
-    if (closeCreateKeyModal) {
-        closeCreateKeyModal.addEventListener('click', () => {
-            hideModal(createKeyModal);
-        });
-    }
-
-    // Кнопки отмены
-    if (cancelBalanceBtn) {
-        cancelBalanceBtn.addEventListener('click', () => {
-            hideModal(balanceModal);
-            clearModalInputs();
-        });
-    }
-
-    if (cancelDeleteBtn) {
-        cancelDeleteBtn.addEventListener('click', () => {
-            hideModal(deleteModal);
-        });
-    }
-
-    if (cancelCreateKeyBtn) {
-        cancelCreateKeyBtn.addEventListener('click', () => {
-            hideModal(createKeyModal);
-        });
-    }
-
-    // Закрытие модальных окон при клике вне их
-    if (balanceModal) {
-        balanceModal.addEventListener('click', (e) => {
-            if (e.target === balanceModal) {
-                hideModal(balanceModal);
-                clearModalInputs();
-            }
-        });
-    }
-
-    if (historyModal) {
-        historyModal.addEventListener('click', (e) => {
-            if (e.target === historyModal) {
-                hideModal(historyModal);
-            }
-        });
-    }
-
-    if (deleteModal) {
-        deleteModal.addEventListener('click', (e) => {
-            if (e.target === deleteModal) {
-                hideModal(deleteModal);
-                resetSwipeState();
-            }
-        });
-    }
-
-    if (serverModal) {
-        serverModal.addEventListener('click', (e) => {
-            if (e.target === serverModal) {
-                hideModal(serverModal);
-            }
-        });
-    }
-
-    if (createKeyModal) {
-        createKeyModal.addEventListener('click', (e) => {
-            if (e.target === createKeyModal) {
-                hideModal(createKeyModal);
-            }
-        });
-    }
-
-    // Обработка Enter в полях ввода
-    if (balanceAmountInput) {
-        balanceAmountInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                confirmBalanceBtn.click();
-            }
-        });
     }
 
     // Инициализируем все подразделы как свернутые
@@ -534,264 +59,54 @@ function initializeEventHandlers() {
     subsections.forEach(subsection => {
         subsection.classList.add('collapsed');
     });
-}
 
-// Элементы DOM
-const balanceAmount = document.getElementById('balanceAmount');
-const addBalanceBtn = document.getElementById('addBalanceBtn');
-const historyLink = document.getElementById('historyLink');
-const keysList = document.getElementById('keysList');
+    console.log('All modules initialized successfully');
+});
 
-// Модальные окна
-const balanceModal = document.getElementById('balanceModal');
-const historyModal = document.getElementById('historyModal');
-const deleteModal = document.getElementById('deleteModal');
-const serverModal = document.getElementById('serverModal');
-const createKeyModal = document.getElementById('createKeyModal');
+// Глобальные функции для совместимости с существующим кодом
 
-// Кнопки закрытия модальных окон
-const closeBalanceModal = document.getElementById('closeBalanceModal');
-const closeHistoryModal = document.getElementById('closeHistoryModal');
-const closeDeleteModal = document.getElementById('closeDeleteModal');
-const closeServerModal = document.getElementById('closeServerModal');
-const closeCreateKeyModal = document.getElementById('closeCreateKeyModal');
-
-// Кнопки отмены
-const cancelBalanceBtn = document.getElementById('cancelBalanceBtn');
-const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
-const cancelCreateKeyBtn = document.getElementById('cancelCreateKeyBtn');
-
-// Кнопки подтверждения
-const confirmBalanceBtn = document.getElementById('confirmBalanceBtn');
-const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-const confirmCreateKeyBtn = document.getElementById('confirmCreateKeyBtn');
-
-// Поля ввода
-const balanceAmountInput = document.getElementById('balanceAmountInput');
-
-// Функции для работы с модальными окнами
-function showModal(modal) {
-    modal.classList.add('active');
-    document.body.style.overflow = 'hidden';
-}
-
-function hideModal(modal) {
-    modal.classList.remove('active');
-    document.body.style.overflow = 'auto';
-}
-
-function clearModalInputs() {
-    if (balanceAmountInput) {
-        balanceAmountInput.value = '';
-    }
-}
-
-// Настройка Telegram Web App
-if (tg) {
-    try {
-        tg.ready();
-
-        // Отключаем вертикальные свайпы (если поддерживается)
-        if (typeof tg.disableVerticalSwipes === 'function') {
-            try {
-                tg.disableVerticalSwipes();
-            } catch (e) {
-                console.warn('Failed to disable vertical swipes:', e);
-            }
-        }
-
-        // Всегда пытаемся перейти в fullscreen при открытии через меню
-        if (typeof tg.requestFullscreen === 'function') {
-            try {
-                tg.requestFullscreen();
-            } catch (e) {
-                console.warn('Failed to request fullscreen:', e);
-            }
-        } else if (typeof tg.expand === 'function') {
-            try {
-                tg.expand();
-            } catch (e) {
-                console.warn('Failed to expand:', e);
-            }
-        }
-
-        // Предотвращение сворачивания приложения
-        try {
-            tg.enableClosingConfirmation();
-        } catch (e) {
-            console.warn('Failed to enable closing confirmation:', e);
-        }
-
-        // Дополнительные настройки для предотвращения сворачивания
-        try {
-            tg.setHeaderColor('#000000');
-            tg.setBackgroundColor('#000000');
-        } catch (e) {
-            console.warn('Failed to set colors:', e);
-        }
-    } catch (e) {
-        console.error('Error initializing Telegram Web App:', e);
-    }
-}
-
-// Функция для копирования ключа
+// Функция для копирования ключа (для совместимости)
 function copyKey(keyValue) {
-    if (navigator.clipboard) {
-        navigator.clipboard.writeText(keyValue).then(() => {
-            showNotification('Ключ скопирован', 'success');
-
-            // Haptic feedback для Telegram
-            if (tg && tg.HapticFeedback) {
-                try {
-                    tg.HapticFeedback.impactOccurred('light');
-                } catch (e) {
-                    console.warn('Failed to trigger haptic feedback:', e);
-                }
-            }
-        }).catch(() => {
-            fallbackCopyTextToClipboard(keyValue);
-        });
-    } else {
-        fallbackCopyTextToClipboard(keyValue);
+    if (window.UIModule) {
+        window.UIModule.copyKey(keyValue);
     }
 }
 
-// Fallback для копирования в старых браузерах
-function fallbackCopyTextToClipboard(text) {
-    const textArea = document.createElement('textarea');
-    textArea.value = text;
-    textArea.style.position = 'fixed';
-    textArea.style.left = '-999999px';
-    textArea.style.top = '-999999px';
-    document.body.appendChild(textArea);
-    textArea.focus();
-    textArea.select();
-
-    try {
-        document.execCommand('copy');
-        showNotification('Ключ скопирован', 'success');
-    } catch (err) {
-        showNotification('Ошибка при копировании', 'error');
-    }
-
-    document.body.removeChild(textArea);
-}
-
-// Система уведомлений
-function showNotification(message, type = 'info') {
-    console.log('Showing notification:', message, type);
-
-    const notification = document.createElement('div');
-    notification.className = `notification notification-${type}`;
-    notification.textContent = message;
-
-    document.body.appendChild(notification);
-
-    setTimeout(() => {
-        notification.classList.add('show');
-    }, 10);
-
-    setTimeout(() => {
-        notification.classList.remove('show');
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
-            }
-        }, 300);
-    }, 3000);
-}
-
-// Функция для переключения выпадающих подразделов
+// Функция для переключения подраздела (для совместимости)
 function toggleSubsection(subsectionId) {
-    console.log('Toggling subsection:', subsectionId);
-
-    const content = document.getElementById(`${subsectionId}-content`);
-    const subsection = content.closest('.collapsible-subsection');
-
-    if (content.classList.contains('expanded')) {
-        // Сворачиваем подраздел
-        content.classList.remove('expanded');
-        subsection.classList.remove('expanded');
-        subsection.classList.add('collapsed');
-
-        // Haptic feedback для Telegram
-        if (tg && tg.HapticFeedback) {
-            try {
-                tg.HapticFeedback.impactOccurred('light');
-            } catch (e) {
-                console.warn('Failed to trigger haptic feedback:', e);
-            }
-        }
-    } else {
-        // Разворачиваем подраздел
-        content.classList.add('expanded');
-        subsection.classList.remove('collapsed');
-        subsection.classList.add('expanded');
-
-        // Haptic feedback для Telegram
-        if (tg && tg.HapticFeedback) {
-            try {
-                tg.HapticFeedback.impactOccurred('light');
-            } catch (e) {
-                console.warn('Failed to trigger haptic feedback:', e);
-            }
-        }
+    if (window.UIModule) {
+        window.UIModule.toggleSubsection(subsectionId);
     }
 }
 
-// Функция для открытия поддержки в Telegram
+// Функция для открытия поддержки в Telegram (для совместимости)
 function openTelegramSupport() {
-    const telegramUrl = 'https://t.me/swrsky';
-
-    // Haptic feedback для Telegram
-    if (tg && tg.HapticFeedback) {
-        try {
-            tg.HapticFeedback.impactOccurred('medium');
-        } catch (e) {
-            console.warn('Failed to trigger haptic feedback:', e);
-        }
-    }
-
-    // Показываем уведомление
-    showNotification('Открываем чат поддержки...', 'info');
-
-    // Открываем ссылку
-    if (tg && tg.openTelegramLink) {
-        // Если мы в Telegram Web App, используем его API
-        try {
-            tg.openTelegramLink(telegramUrl);
-        } catch (e) {
-            console.warn('Failed to open Telegram link:', e);
-            window.open(telegramUrl, '_blank');
-        }
-    } else {
-        // Иначе открываем в новой вкладке
-        window.open(telegramUrl, '_blank');
+    if (window.UIModule) {
+        window.UIModule.openTelegramSupport();
     }
 }
 
-// Инициализация при загрузке страницы
+// Обработчик для истории платежей
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM loaded - initializing');
-
-    // Инициализируем обработчики событий
-    initializeEventHandlers();
-
-    refreshBalanceUI().catch(() => { });
-
-    // Показываем приветственное уведомление
-    setTimeout(() => {
-        showNotification('Добро пожаловать в Fast Rabbit!', 'info');
-    }, 1000);
-
-    // Настройка Telegram Web App после загрузки
-    if (tg) {
-        try {
-            // Устанавливаем цветовую схему
-            tg.setHeaderColor('#000000');
-            tg.setBackgroundColor('#000000');
-        } catch (e) {
-            console.warn('Failed to set colors:', e);
-        }
+    const historyLink = document.getElementById('historyLink');
+    if (historyLink && window.PaymentModule) {
+        historyLink.addEventListener('click', () => {
+            // Загружаем историю платежей при открытии модального окна
+            setTimeout(() => {
+                window.PaymentModule.loadPaymentHistory();
+            }, 100);
+        });
     }
 });
+
+// Обработчик для кнопки помощи
+document.addEventListener('DOMContentLoaded', () => {
+    const helpBlock = document.querySelector('.help-block');
+    if (helpBlock) {
+        helpBlock.addEventListener('click', () => {
+            openTelegramSupport();
+        });
+    }
+});
+
+console.log('App initialization complete');

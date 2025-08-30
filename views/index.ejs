@@ -13,32 +13,15 @@
         window.API_BASE_URL = "<%= apiBaseUrl %>";
     </script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- потом уже -->
+
+    <!-- Подключение модулей -->
+    <script src="/js/modules/telegramModule.js"></script>
+    <script src="/js/modules/uiModule.js"></script>
+    <script src="/js/modules/apiModule.js"></script>
+    <script src="/js/modules/paymentModule.js"></script>
+
+    <!-- Главный файл приложения -->
     <script src="/js/app.js"></script>
-    <script>
-        // Проверяем, что скрипт загружается
-        console.log('HTML loaded');
-        // Убедимся, что кнопка "Назад" скрыта на главной странице
-        if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.BackButton) {
-            window.Telegram.WebApp.BackButton.hide();
-        }
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('DOMContentLoaded from HTML');
-            // Проверяем наличие элементов
-            document.querySelectorAll('.device').forEach((device, index) => {
-                console.log('Device from HTML:', device);
-                device.onclick = (e) => {
-                    console.log('Click from HTML handler');
-                    if (!e.target.closest('.copy-btn') && !e.target.closest('.delete-action')) {
-                        const keyId = device.getAttribute('data-key-id');
-                        if (keyId) {
-                            window.location.href = `/key/${keyId}`;
-                        }
-                    }
-                };
-            });
-        });
-    </script>
 </head>
 
 <body>
@@ -307,8 +290,6 @@
             </div>
         </div>
     </div>
-
-    <script src="/js/app.js?v=stars1"></script>
 </body>
 
 </html>
