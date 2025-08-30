@@ -7,7 +7,8 @@ const config = {
 
   // Настройки API
   api: {
-    baseUrl: process.env.API_BASE_URL || 'http://localhost:8000',
+    baseUrl: process.env.API_BASE_URL || 'https://api.fast-rabbit-vpn.swrsky.ru',
+    // baseUrl: process.env.API_BASE_URL || 'http://localhost:8000',
     timeout: 10000
   },
 

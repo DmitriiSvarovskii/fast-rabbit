@@ -2,7 +2,8 @@
 
 const ApiModule = {
   // Базовый URL API
-  baseUrl: window.API_BASE_URL || 'http://localhost:8000',
+  baseUrl: window.API_BASE_URL || 'https://api.fast-rabbit-vpn.swrsky.ru',
+  // baseUrl: window.API_BASE_URL || 'http://localhost:8000',
 
   // Инициализация модуля
   init() {
@@ -28,11 +29,11 @@ const ApiModule = {
 
     try {
       const response = await fetch(url, finalOptions);
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       return await response.json();
     } catch (error) {
       console.error('API request failed:', error);
@@ -123,7 +124,7 @@ const ApiModule = {
   async createStarsInvoice(amountRub) {
     try {
       const initData = window.TelegramModule ? window.TelegramModule.getInitData() : '';
-      
+
       const response = await this.request(`${this.baseUrl}/payments/stars/invoice`, {
         method: 'POST',
         headers: {
@@ -142,7 +143,7 @@ const ApiModule = {
   async checkStarsPaymentStatus(payload) {
     try {
       const initData = window.TelegramModule ? window.TelegramModule.getInitData() : '';
-      
+
       const response = await this.request(
         `${this.baseUrl}/payments/stars/status?payload=${encodeURIComponent(payload)}`,
         {
@@ -162,7 +163,7 @@ const ApiModule = {
   async getBalance() {
     try {
       const initData = window.TelegramModule ? window.TelegramModule.getInitData() : '';
-      
+
       const response = await this.request(`${this.baseUrl}/me/balance`, {
         headers: {
           'X-Telegram-Init-Data': initData
