@@ -17,7 +17,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Главная страница
 app.get('/', (req, res) => {
-  res.render('index', { apiBaseUrl: API_BASE_URL });
+  res.render('index', { apiBaseUrl: API_BASE_URL, title: 'Fast Rabbit VPN' });
 });
 
 // (если есть страница ключа)
