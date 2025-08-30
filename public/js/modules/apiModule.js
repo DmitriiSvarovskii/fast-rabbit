@@ -311,6 +311,25 @@ const ApiModule = {
     } catch (error) {
       console.error('Ошибка обновления баланса:', error);
     }
+  },
+
+  // Обновление данных пользователя после успешной оплаты
+  async updateUserDataAfterPayment(newBalance) {
+    try {
+      // Обновляем кэшированные данные пользователя
+      if (window.currentUser) {
+        window.currentUser.balance = { balance: newBalance };
+      }
+
+      // Обновляем UI
+      if (window.UIModule) {
+        window.UIModule.updateBalance(newBalance);
+      }
+
+      console.log('User data updated after payment, new balance:', newBalance);
+    } catch (error) {
+      console.error('Error updating user data after payment:', error);
+    }
   }
 };
 

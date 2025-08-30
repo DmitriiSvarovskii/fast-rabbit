@@ -75,26 +75,50 @@ const PaymentModule = {
         console.log('Stars: invoice status =', status); // 'paid' | 'cancelled' | 'failed'
 
         if (status === 'paid') {
-          // Проверяем статус на бэке
+          // Проверяем статус на бэке и получаем актуальный баланс
           try {
-            await window.ApiModule.checkStarsPaymentStatus(payload);
+            const paymentStatus = await window.ApiModule.checkStarsPaymentStatus(payload);
+            console.log('Payment status response:', paymentStatus);
+
+            // Обновляем баланс из ответа API
+            if (paymentStatus.balance !== undefined) {
+              // Обновляем данные пользователя через специальный метод
+              await window.ApiModule.updateUserDataAfterPayment(paymentStatus.balance);
+            } else {
+              // Fallback: обновляем баланс через стандартный метод
+              await window.ApiModule.refreshBalanceUI();
+            }
+
+            // Закрываем модальное окно
+            if (window.UIModule) {
+              window.UIModule.hideModal(window.UIModule.modals.balance);
+              window.UIModule.clearModalInputs();
+
+              // Формируем сообщение с актуальной информацией
+              let message = `Баланс пополнен`;
+              if (paymentStatus.rub !== undefined) {
+                message += ` на ${paymentStatus.rub} ₽`;
+              }
+              if (paymentStatus.stars !== undefined) {
+                message += ` (~${paymentStatus.stars} ⭐)`;
+              }
+
+              window.UIModule.showNotification(message, 'success');
+            }
+
+            // Haptic feedback
+            if (window.TelegramModule) {
+              window.TelegramModule.hapticFeedback('medium');
+            }
           } catch (error) {
-            console.warn('Failed to check payment status:', error);
-          }
+            console.error('Failed to check payment status:', error);
 
-          // Обновляем баланс
-          await window.ApiModule.refreshBalanceUI();
-
-          // Закрываем модальное окно
-          if (window.UIModule) {
-            window.UIModule.hideModal(window.UIModule.modals.balance);
-            window.UIModule.clearModalInputs();
-            window.UIModule.showNotification(`Баланс пополнен (~${stars} ⭐)`, 'success');
-          }
-
-          // Haptic feedback
-          if (window.TelegramModule) {
-            window.TelegramModule.hapticFeedback('medium');
+            // В случае ошибки все равно закрываем модальное окно
+            if (window.UIModule) {
+              window.UIModule.hideModal(window.UIModule.modals.balance);
+              window.UIModule.clearModalInputs();
+              window.UIModule.showNotification(`Баланс пополнен (~${stars} ⭐)`, 'success');
+            }
           }
         } else if (status === 'cancelled') {
           if (window.UIModule) {
