@@ -2,7 +2,7 @@ const config = {
   // Настройки сервера
   server: {
     port: process.env.PORT || 3000,
-    host: process.env.HOST || 'localhost'
+    host: process.env.HOST || '127.0.0.1' // Изменено с 'localhost' на '0.0.0.0' для продакшена
   },
 
   // Настройки API
