@@ -108,9 +108,13 @@ const ApiModule = {
         return window.currentUser;
       }
 
-      // Если данных нет, делаем запрос к API
-      const response = await this.request(`${this.baseUrl}/user/me`);
-      return response;
+      // Если данных нет, пытаемся аутентифицироваться
+      const authSuccess = await this.authenticate();
+      if (authSuccess && window.currentUser) {
+        return window.currentUser;
+      }
+
+      throw new Error('Не удалось получить данные пользователя');
     } catch (error) {
       console.error('Error fetching user data:', error);
       throw new Error('Ошибка при получении данных пользователя');
@@ -214,8 +218,18 @@ const ApiModule = {
   // Обновление баланса
   async getBalance() {
     try {
-      const response = await this.request(`${this.baseUrl}/balance/me`);
-      return response;
+      // Используем данные из аутентификации
+      if (window.currentUser && window.currentUser.balance) {
+        return window.currentUser.balance;
+      }
+
+      // Если данных нет, пытаемся аутентифицироваться
+      const authSuccess = await this.authenticate();
+      if (authSuccess && window.currentUser && window.currentUser.balance) {
+        return window.currentUser.balance;
+      }
+
+      throw new Error('Не удалось получить баланс');
     } catch (error) {
       console.error('Error fetching balance:', error);
       throw new Error('Ошибка при получении баланса');
@@ -279,9 +293,20 @@ const ApiModule = {
   // Обновление баланса в UI
   async refreshBalanceUI() {
     try {
-      const balanceData = await this.getBalance();
-      if (window.UIModule && balanceData.balance !== undefined) {
-        window.UIModule.updateBalance(balanceData.balance);
+      // Используем данные из аутентификации
+      if (window.currentUser && window.currentUser.balance) {
+        if (window.UIModule) {
+          window.UIModule.updateBalance(window.currentUser.balance.balance);
+        }
+        return;
+      }
+
+      // Если данных нет, пытаемся аутентифицироваться
+      const authSuccess = await this.authenticate();
+      if (authSuccess && window.currentUser && window.currentUser.balance) {
+        if (window.UIModule) {
+          window.UIModule.updateBalance(window.currentUser.balance.balance);
+        }
       }
     } catch (error) {
       console.error('Ошибка обновления баланса:', error);

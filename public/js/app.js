@@ -36,14 +36,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.PaymentModule.init();
     }
 
-    // Загрузка данных пользователя
+    // Загрузка данных пользователя и рендеринг
     if (window.ApiModule) {
         await window.ApiModule.loadUserAndRender();
-    }
-
-    // Обновление баланса
-    if (window.ApiModule) {
-        await window.ApiModule.refreshBalanceUI();
     }
 
     // Показываем приветственное уведомление
