@@ -2,7 +2,7 @@
 
 const ApiModule = {
   // Базовый URL API
-  baseUrl: window.API_BASE_URL || 'https://api.fast-rabbit-vpn.swrsky.ru/',
+  baseUrl: window.API_BASE_URL || 'https://api.fast-rabbit-vpn.swrsky.ru',
   // baseUrl: window.API_BASE_URL || 'http://localhost:8000',
 
   // Инициализация модуля
