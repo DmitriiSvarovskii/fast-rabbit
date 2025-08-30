@@ -1,7 +1,8 @@
 console.log('Script loaded and running');
 
 // === API и Telegram init ===
-const API_BASE = window.API_BASE_URL || 'http://localhost:8000';
+const API_BASE = window.API_BASE_URL || 'https://api.fast-rabbit-vpn.swrsky.ru';
+// const API_BASE = window.API_BASE_URL || 'http://localhost:8000';
 const tg = window.Telegram?.WebApp;
 
 function getTelegramId() {
