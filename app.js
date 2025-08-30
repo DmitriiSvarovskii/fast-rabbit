@@ -16,64 +16,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Главная страница
-app.get('/', async (req, res) => {
-  try {
-    // Получаем данные пользователя
-    const userResponse = await axios.get(`${API_BASE_URL}/user/1`);
-    const user = userResponse.data;
+app.get('/', (req, res) => {
+  res.render('index', { apiBaseUrl: API_BASE_URL });
+});
 
-    // Получаем историю платежей
-    const paymentsResponse = await axios.get(`${API_BASE_URL}/payment/1`);
-    const payments = paymentsResponse.data;
-
-    res.render('index', {
-      title: 'Fast Rabbit VPN',
-      user: user,
-      payments: payments
-    });
-  } catch (error) {
-    console.error('Error fetching data:', error.message);
-    // В случае ошибки показываем демо данные
-    res.render('index', {
-      title: 'Fast Rabbit VPN',
-      user: {
-        id: 1,
-        telegram_id: 123,
-        first_name: '',
-        last_name: '',
-        username: '',
-        balance: { balance: 100 },
-        keys: [
-          {
-            id: 1,
-            country: 'Germany',
-            key: 'vless://5611bc6d-de7e-457d-bab5-21db3f9e2231@germany.swrsky.ru:443?flow=xtls-rprx-vision&type=tcp&security=reality&fp=random&sni=www.google.com&pbk=QuXc8-KY25ZOt9lVKBQfrfNr4TCq7ZUQ9fCJ0SjdDxI&sid=0702ff2baba7&spx=/#1swarovski-dima-vpn-germany',
-            created_at: '2023-10-01T12:00:00Z'
-          },
-          {
-            id: 2,
-            country: 'Germany',
-            key: 'vless://5611bc6d-de7e-457d-bab5-21db3f9e2231@germany.swrsky.ru:443?flow=xtls-rprx-vision&type=tcp&security=reality&fp=random&sni=www.google.com&pbk=QuXc8-KY25ZOt9lVKBQfrfNr4TCq7ZUQ9fCJ0SjdDxI&sid=0702ff2baba7&spx=/#dima-vpn-germany',
-            created_at: '2023-10-01T12:00:00Z'
-          },
-          {
-            id: 3,
-            country: 'Germany',
-            key: 'vless://5611bc6d-de7e-457d-bab5-21db3f9e2231@germany.swrsky.ru:443?flow=xtls-rprx-vision&type=tcp&security=reality&fp=random&sni=www.google.com&pbk=QuXc8-KY25ZOt9lVKBQfrfNr4TCq7ZUQ9fCJ0SjdDxI&sid=0702ff2baba7&spx=/#swarovski-vpn-germany',
-            created_at: '2023-10-01T12:00:00Z'
-          }
-        ]
-      },
-      payments: [
-        {
-          id: 1,
-          user_id: 1,
-          amount: 100,
-          created_at: '2025-08-02T10:30:00Z'
-        }
-      ]
-    });
-  }
+// (если есть страница ключа)
+app.get('/key/:id', (req, res) => {
+  res.render('key', { apiBaseUrl: API_BASE_URL, keyId: req.params.id });
 });
 
 // Страница ключа

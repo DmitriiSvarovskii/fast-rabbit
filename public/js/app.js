@@ -1,12 +1,79 @@
-// Глобальные переменные
 console.log('Script loaded and running');
-let tg = window.Telegram.WebApp;
 
-const API_BASE = "https://api.fast-rabbit-vpn.swrsky.ru"; // твой бэкенд FastAPI
+// === API и Telegram init ===
+const API_BASE = window.API_BASE_URL || 'https://api.fast-rabbit-vpn.swrsky.ru';
+const tg = window.Telegram?.WebApp;
 
-function getInitData() {
-    return window.Telegram?.WebApp?.initData || "";
+function getTelegramId() {
+    try { return tg?.initDataUnsafe?.user?.id || null; } catch (_) { return null; }
 }
+function getInitDataHeader() {
+    return tg?.initData || '';
+}
+
+// Подтягиваем пользователя и рендерим
+async function loadUserAndRender() {
+    const telegramId = getTelegramId();
+    if (!telegramId) {
+        console.warn('Нет Telegram ID (WebApp не в Telegram?)');
+        return;
+    }
+
+    try {
+        const resp = await fetch(`${API_BASE}/user/${telegramId}`);
+        if (!resp.ok) throw new Error(`API /user/${telegramId} -> ${resp.status}`);
+        const user = await resp.json();
+
+        // Имя
+        const nameEl = document.getElementById('userName');
+        if (nameEl) nameEl.textContent = user.username || user.first_name || ('ID ' + user.telegram_id);
+
+        // Баланс
+        const balEl = document.getElementById('balanceAmount');
+        if (balEl) balEl.textContent = `${user.balance?.balance ?? 0} ₽`;
+
+        // Ключи
+        const countEl = document.getElementById('keysCount');
+        const listEl = document.getElementById('keysList');
+        const keys = Array.isArray(user.keys) ? user.keys : [];
+        if (countEl) countEl.textContent = `Количество ключей: ${keys.length}`;
+        if (listEl) {
+            listEl.innerHTML = '';
+            for (const k of keys) {
+                const div = document.createElement('div');
+                div.className = 'device';
+                div.setAttribute('data-key-id', k.id);
+                const dateStr = k.created_at ? new Date(k.created_at).toLocaleDateString('ru-RU') : '';
+                div.innerHTML = `
+          <div class="device-icon"></div>
+          <div class="device-info">
+            <div class="device-title">${k.country ?? ''}</div>
+            <div class="device-date">Добавлено ${dateStr}</div>
+          </div>
+          <div class="device-actions">
+            <button class="copy-btn" title="Копировать">📋</button>
+          </div>
+          <div class="delete-action"></div>
+        `;
+                div.addEventListener('click', (e) => {
+                    if (e.target.closest('.copy-btn') || e.target.closest('.delete-action')) return;
+                    window.location.href = `/key/${k.id}`;
+                });
+                div.querySelector('.copy-btn')?.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (k.key) navigator.clipboard.writeText(k.key);
+                });
+                listEl.appendChild(div);
+            }
+        }
+    } catch (e) {
+        console.error('Ошибка загрузки пользователя:', e);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadUserAndRender();
+});
 
 async function refreshBalanceUI() {
     try {

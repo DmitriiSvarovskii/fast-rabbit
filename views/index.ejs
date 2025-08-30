@@ -9,7 +9,12 @@
     </title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/style.css">
+    <script>
+        window.API_BASE_URL = "<%= apiBaseUrl %>";
+    </script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- потом уже -->
+    <script src="/js/app.js"></script>
     <script>
         // Проверяем, что скрипт загружается
         console.log('HTML loaded');
@@ -42,17 +47,13 @@
             <div class="logo"></div>
         </div>
         <div class="right">
-            <span>
-                <%= user.first_name %>
-            </span>
+            <span id="userName"></span>
         </div>
     </header>
 
     <section class="balance-section">
         <h4>Баланс</h4>
-        <div class="balance-amount" data-testid="balance-block-amount" id="balanceAmount">
-            <%= user.balance.balance %> ₽
-        </div>
+        <div class="balance-amount" id="balanceAmount">— ₽</div>
         <div class="balance-info">Хватит на ≈30 дней</div>
         <button class="balance-button" id="addBalanceBtn">Пополнить баланс</button>
         <div class="history-link" id="historyLink">История платежей</div>
@@ -63,7 +64,7 @@
             <h4>Мои ключи</h4>
             <div class="add-icon" id="addKeyBtn">+</div>
         </div>
-        <div class="subtitle">Количество ключей: <%= user.keys.length %>
+        <div class="subtitle" id="keysCount">Количество ключей: 0</div>
         </div>
         <div class="keys-list" id="keysList">
             <% user.keys.forEach(function(key) { %>
