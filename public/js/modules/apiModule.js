@@ -5,9 +5,50 @@ const ApiModule = {
   baseUrl: window.API_BASE_URL || 'https://api.fast-rabbit-vpn.swrsky.ru',
   // baseUrl: window.API_BASE_URL || 'http://localhost:8000',
 
+  // Токен доступа
+  accessToken: null,
+
   // Инициализация модуля
   init() {
     console.log('API Module initialized with base URL:', this.baseUrl);
+    // Автоматическая аутентификация при инициализации
+    this.authenticate();
+  },
+
+  // Аутентификация через Telegram WebApp
+  async authenticate() {
+    try {
+      const initData = window.TelegramModule ? window.TelegramModule.getInitData() : '';
+
+      if (!initData) {
+        console.warn('Нет данных инициализации Telegram WebApp');
+        return false;
+      }
+
+      const response = await this.request(`${this.baseUrl}/auth/telegram`, {
+        method: 'POST',
+        headers: {
+          'X-Telegram-WebApp-InitData': initData,
+          'accept': 'application/json'
+        }
+      });
+
+      if (response.access_token && response.access_token.access_token) {
+        this.accessToken = response.access_token.access_token;
+        console.log('Аутентификация успешна, токен получен');
+
+        // Сохраняем данные пользователя в глобальную переменную
+        window.currentUser = response;
+
+        return true;
+      } else {
+        console.error('Не удалось получить токен доступа');
+        return false;
+      }
+    } catch (error) {
+      console.error('Ошибка аутентификации:', error);
+      return false;
+    }
   },
 
   // Базовый метод для HTTP запросов
@@ -17,6 +58,11 @@ const ApiModule = {
         'Content-Type': 'application/json',
       },
     };
+
+    // Добавляем токен авторизации, если он есть
+    if (this.accessToken) {
+      defaultOptions.headers['Authorization'] = `Bearer ${this.accessToken}`;
+    }
 
     const finalOptions = {
       ...defaultOptions,
@@ -31,6 +77,20 @@ const ApiModule = {
       const response = await fetch(url, finalOptions);
 
       if (!response.ok) {
+        // Если получили 401, попробуем переаутентифицироваться
+        if (response.status === 401) {
+          console.log('Токен истек, пытаемся переаутентифицироваться...');
+          const reauthSuccess = await this.authenticate();
+          if (reauthSuccess) {
+            // Повторяем запрос с новым токеном
+            finalOptions.headers['Authorization'] = `Bearer ${this.accessToken}`;
+            const retryResponse = await fetch(url, finalOptions);
+            if (!retryResponse.ok) {
+              throw new Error(`HTTP error! status: ${retryResponse.status}`);
+            }
+            return await retryResponse.json();
+          }
+        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
@@ -41,10 +101,15 @@ const ApiModule = {
     }
   },
 
-  // Получение данных пользователя
-  async getUser(userId) {
+  // Получение данных пользователя (теперь используем данные из аутентификации)
+  async getUser() {
     try {
-      const response = await this.request(`${this.baseUrl}/user/${userId}`);
+      if (window.currentUser) {
+        return window.currentUser;
+      }
+
+      // Если данных нет, делаем запрос к API
+      const response = await this.request(`${this.baseUrl}/user/me`);
       return response;
     } catch (error) {
       console.error('Error fetching user data:', error);
@@ -53,12 +118,11 @@ const ApiModule = {
   },
 
   // Создание платежа
-  async createPayment(userId, amount) {
+  async createPayment(amount) {
     try {
       const response = await this.request(`${this.baseUrl}/payment/`, {
         method: 'POST',
         body: JSON.stringify({
-          user_id: userId,
           amount: amount
         })
       });
@@ -70,9 +134,9 @@ const ApiModule = {
   },
 
   // Получение истории платежей
-  async getPaymentHistory(userId) {
+  async getPaymentHistory() {
     try {
-      const response = await this.request(`${this.baseUrl}/payment/${userId}`);
+      const response = await this.request(`${this.baseUrl}/payment/history`);
       return response;
     } catch (error) {
       console.error('Error fetching payment history:', error);
@@ -83,7 +147,7 @@ const ApiModule = {
   // Удаление ключа
   async deleteKey(keyId) {
     try {
-      const response = await this.request(`${this.baseUrl}/key/?server_id=${keyId}`, {
+      const response = await this.request(`${this.baseUrl}/key/${keyId}`, {
         method: 'DELETE'
       });
       return response;
@@ -123,13 +187,8 @@ const ApiModule = {
   // Создание инвойса для оплаты через Stars
   async createStarsInvoice(amountRub) {
     try {
-      const initData = window.TelegramModule ? window.TelegramModule.getInitData() : '';
-
       const response = await this.request(`${this.baseUrl}/payments/stars/invoice`, {
         method: 'POST',
-        headers: {
-          'X-Telegram-Init-Data': initData
-        },
         body: JSON.stringify({ amount_rub: amountRub })
       });
       return response;
@@ -142,15 +201,8 @@ const ApiModule = {
   // Проверка статуса платежа через Stars
   async checkStarsPaymentStatus(payload) {
     try {
-      const initData = window.TelegramModule ? window.TelegramModule.getInitData() : '';
-
       const response = await this.request(
-        `${this.baseUrl}/payments/stars/status?payload=${encodeURIComponent(payload)}`,
-        {
-          headers: {
-            'X-Telegram-Init-Data': initData
-          }
-        }
+        `${this.baseUrl}/payments/stars/status?payload=${encodeURIComponent(payload)}`
       );
       return response;
     } catch (error) {
@@ -162,13 +214,7 @@ const ApiModule = {
   // Обновление баланса
   async getBalance() {
     try {
-      const initData = window.TelegramModule ? window.TelegramModule.getInitData() : '';
-
-      const response = await this.request(`${this.baseUrl}/me/balance`, {
-        headers: {
-          'X-Telegram-Init-Data': initData
-        }
-      });
+      const response = await this.request(`${this.baseUrl}/balance/me`);
       return response;
     } catch (error) {
       console.error('Error fetching balance:', error);
@@ -179,13 +225,20 @@ const ApiModule = {
   // Загрузка данных пользователя и рендеринг
   async loadUserAndRender() {
     try {
-      const telegramId = window.TelegramModule ? window.TelegramModule.getTelegramId() : null;
-      if (!telegramId) {
-        console.warn('Нет Telegram ID (WebApp не в Telegram?)');
-        return;
+      // Проверяем, есть ли уже данные пользователя
+      if (!window.currentUser) {
+        console.warn('Нет данных пользователя, пытаемся аутентифицироваться...');
+        const authSuccess = await this.authenticate();
+        if (!authSuccess) {
+          console.error('Не удалось аутентифицироваться');
+          if (window.UIModule) {
+            window.UIModule.showNotification('Ошибка аутентификации', 'error');
+          }
+          return;
+        }
       }
 
-      const user = await this.getUser(telegramId);
+      const user = window.currentUser;
 
       // Обновляем имя пользователя
       if (window.UIModule) {
@@ -227,22 +280,11 @@ const ApiModule = {
   async refreshBalanceUI() {
     try {
       const balanceData = await this.getBalance();
-      if (window.UIModule && balanceData.balance_rub !== undefined) {
-        window.UIModule.updateBalance(balanceData.balance_rub);
+      if (window.UIModule && balanceData.balance !== undefined) {
+        window.UIModule.updateBalance(balanceData.balance);
       }
     } catch (error) {
       console.error('Ошибка обновления баланса:', error);
-    }
-  },
-
-  // Создание инвойса Stars
-  async createStarsInvoice(amountRub) {
-    try {
-      const { invoice_link, stars, payload } = await this.createStarsInvoice(amountRub);
-      return { invoice_link, stars, payload };
-    } catch (error) {
-      console.error('Stars payment error:', error);
-      throw error;
     }
   }
 };

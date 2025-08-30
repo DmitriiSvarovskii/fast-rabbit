@@ -27,6 +27,6 @@ router.post('/payments/stars/invoice', apiController.createStarsInvoice);
 router.get('/payments/stars/status', apiController.checkStarsPaymentStatus);
 
 // API для получения баланса
-router.get('/me/balance', apiController.getBalance);
+router.get('/balance/me', apiController.getBalance);
 
 module.exports = router;

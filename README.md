@@ -102,7 +102,7 @@ npm start
 - `GET /api/servers` - Список серверов
 - `POST /api/keys` - Создание ключа
 - `POST /api/payments/stars/invoice` - Создание инвойса Stars
-- `GET /api/me/balance` - Получение баланса
+- `GET /api/balance/me` - Получение баланса
 
 ## Архитектурные преимущества
 

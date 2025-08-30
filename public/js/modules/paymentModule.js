@@ -41,7 +41,7 @@ const PaymentModule = {
   async handleBalancePayment() {
     const balanceAmountInput = document.getElementById('balanceAmountInput');
     const confirmBalanceBtn = document.getElementById('confirmBalanceBtn');
-    
+
     if (!balanceAmountInput || !confirmBalanceBtn) return;
 
     const amount = parseInt(balanceAmountInput.value);
@@ -73,7 +73,7 @@ const PaymentModule = {
       // Открываем инвойс
       window.TelegramModule.openInvoice(invoice_link, async (status) => {
         console.log('Stars: invoice status =', status); // 'paid' | 'cancelled' | 'failed'
-        
+
         if (status === 'paid') {
           // Проверяем статус на бэке
           try {
@@ -84,7 +84,7 @@ const PaymentModule = {
 
           // Обновляем баланс
           await window.ApiModule.refreshBalanceUI();
-          
+
           // Закрываем модальное окно
           if (window.UIModule) {
             window.UIModule.hideModal(window.UIModule.modals.balance);
@@ -116,7 +116,7 @@ const PaymentModule = {
       if (window.UIModule) {
         window.UIModule.showNotification(error.message || 'Ошибка при создании счёта', 'error');
       }
-      
+
       // Разблокируем кнопку в случае ошибки
       if (confirmBalanceBtn) {
         confirmBalanceBtn.disabled = false;
@@ -129,7 +129,7 @@ const PaymentModule = {
   async handleKeyDeletion() {
     const deleteModal = document.getElementById('deleteModal');
     const deleteKeyInfo = document.getElementById('deleteKeyInfo');
-    
+
     if (!deleteModal || !deleteKeyInfo) return;
 
     // Получаем ID ключа из текста
@@ -239,7 +239,7 @@ const PaymentModule = {
   // Обработка создания ключа
   async handleKeyCreation(server) {
     console.log('Creating key for server:', server);
-    
+
     try {
       const response = await window.ApiModule.createKey(server.id);
       console.log('Create key response:', response);
@@ -273,15 +273,7 @@ const PaymentModule = {
   // Загрузка истории платежей
   async loadPaymentHistory() {
     try {
-      const telegramId = window.TelegramModule ? window.TelegramModule.getTelegramId() : null;
-      if (!telegramId) {
-        if (window.UIModule) {
-          window.UIModule.showNotification('Ошибка: не найден ID пользователя', 'error');
-        }
-        return;
-      }
-
-      const payments = await window.ApiModule.getPaymentHistory(telegramId);
+      const payments = await window.ApiModule.getPaymentHistory();
       this.renderPaymentHistory(payments);
     } catch (error) {
       console.error('Error loading payment history:', error);
@@ -305,7 +297,7 @@ const PaymentModule = {
     payments.forEach(payment => {
       const paymentElement = document.createElement('div');
       paymentElement.className = 'payment-item';
-      
+
       const date = payment.created_at ? new Date(payment.created_at).toLocaleDateString('ru-RU') : 'Неизвестно';
       const amount = payment.amount || 0;
       const status = payment.status || 'pending';

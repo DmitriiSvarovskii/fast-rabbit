@@ -133,7 +133,7 @@ class ApiService {
   // Обновление баланса
   async getBalance(initData) {
     try {
-      const response = await this.client.get('/me/balance', {
+      const response = await this.client.get('/balance/me', {
         headers: {
           'X-Telegram-Init-Data': initData
         }

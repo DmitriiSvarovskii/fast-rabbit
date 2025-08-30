@@ -9,9 +9,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.TelegramModule.init();
     }
 
-    // Инициализация API модуля
+    // Инициализация API модуля (включает аутентификацию)
     if (window.ApiModule) {
         window.ApiModule.init();
+
+        // Ждем завершения аутентификации
+        await new Promise(resolve => {
+            const checkAuth = () => {
+                if (window.currentUser || window.ApiModule.accessToken) {
+                    resolve();
+                } else {
+                    setTimeout(checkAuth, 100);
+                }
+            };
+            checkAuth();
+        });
     }
 
     // Инициализация UI модуля
