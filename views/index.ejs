@@ -252,18 +252,7 @@
                 <button class="modal-close" id="closeHistoryModal">&times;</button>
             </div>
             <div class="modal-body">
-                <div class="payments-list" id="paymentsList">
-                    <% payments.forEach(function(payment) { %>
-                        <div class="payment-item">
-                            <div class="payment-info">
-                                <div class="payment-amount">+<%= payment.amount %> ₽</div>
-                                <div class="payment-date">
-                                    <%= new Date(payment.created_at).toLocaleString('ru-RU') %>
-                                </div>
-                            </div>
-                        </div>
-                        <% }); %>
-                </div>
+                <div class="payments-list" id="paymentsList"></div>
             </div>
         </div>
     </div>

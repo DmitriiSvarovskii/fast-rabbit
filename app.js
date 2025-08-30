@@ -4,8 +4,8 @@ const axios = require('axios');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const API_BASE_URL = process.env.API_BASE_URL || 'https://api.fast-rabbit-vpn.swrsky.ru';
-
+const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:8000';
+// https://api.fast-rabbit-vpn.swrsky.ru
 // Настройка EJS
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
